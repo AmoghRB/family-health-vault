@@ -146,6 +146,40 @@ def _tidy(name: str) -> str:
     return name.title() if name.isupper() else name
 
 
+NULLISH = {"", "none", "null", "n/a", "na", "-", "nil"}
+
+
+def clean_person(name: str | None) -> str | None:
+    """'Mr. RAMESH KUMAR (58Y/M)' → 'Ramesh Kumar'."""
+    if not name or str(name).strip().lower() in NULLISH:
+        return None
+    name = re.sub(r"[(\[].*?[)\]]", " ", str(name))
+    name = re.sub(r"^\s*(?:mr|mrs|ms|miss|smt|shri|master|baby)\.?\s+", "", name, flags=re.I)
+    return _tidy(name) or None
+
+
+def clean_lab(lab: str | None) -> str | None:
+    """'SUNRISE DIAGNOSTICS · NABL accredited …' → 'Sunrise Diagnostics'."""
+    if not lab or str(lab).strip().lower() in NULLISH:
+        return None
+    return _tidy(re.split(r"\s[·|]\s|\s[-–]\s|,\s", str(lab))[0]) or None
+
+
+def clean_unit_range(unit, rng) -> tuple[str | None, str | None]:
+    """Fix a unit that is really a range (or 'None'), as models sometimes return."""
+    unit = None if unit is None or str(unit).strip().lower() in NULLISH else str(unit).strip()
+    rng = None if rng is None or str(rng).strip().lower() in NULLISH else str(rng).strip()
+    if unit:
+        m = re.match(r"^(\S*?)\s*[(\[]([^)\]]*)[)\]]$", unit)
+        if m:                                   # "mg/dL (0.6 - 1.3)" or "(70-100)"
+            unit, rng = m.group(1) or None, rng or m.group(2).strip()
+        elif RANGE_RE.match(unit):              # "70-100" in the unit slot
+            unit, rng = None, rng or unit
+    if rng:
+        rng = rng.strip("()[] ") or None
+    return unit, rng
+
+
 PERSON_RE = re.compile(
     r"(?:patient\s*name|pt\.?\s*name|patient|name)\s*[:\-]\s*"
     r"(?:(?:mr|mrs|ms|miss|smt|shri|master|baby)\.?\s+)?"
@@ -156,7 +190,7 @@ PERSON_RE = re.compile(
 
 def parse_person(text: str) -> str | None:
     m = PERSON_RE.search(text)
-    return _tidy(m.group(1)) if m else None
+    return clean_person(m.group(1)) if m else None
 
 
 # A value line: "<name> [: or ....] <value> [unit] [range]"
@@ -294,10 +328,15 @@ def _check(out: dict) -> tuple[ExtractedReport | None, str | None]:
             page = int(v.get("page") or 1)
         except (TypeError, ValueError):
             page = 1
-        values.append({"test": str(v["test"]).strip(), "value": str(v["value"]).strip(),
-                       "unit": (str(v["unit"]).strip() or None) if v.get("unit") else None,
-                       "range": (str(v["range"]).strip() or None) if v.get("range") else None,
-                       "page": page})
+        value = str(v["value"]).strip()
+        unit, rng = clean_unit_range(v.get("unit"), v.get("range"))
+        m = re.match(r"^([<>]?\s?\d[\d,]*(?:\.\d+)?)\s+(\S+)$", value)
+        if m:                                   # "7.2 %" → value "7.2", unit "%"
+            value, unit = m.group(1), unit or m.group(2)
+        if unit and rng and unit.strip("()[] ") == rng:
+            unit = None                         # range copied into the unit slot
+        values.append({"test": str(v["test"]).strip(), "value": value.replace(" ", ""),
+                       "unit": unit, "range": rng, "page": page})
     meds = []
     for m in out.get("medicines") or []:
         name = m.get("name") if isinstance(m, dict) else m
@@ -308,10 +347,10 @@ def _check(out: dict) -> tuple[ExtractedReport | None, str | None]:
     time = out.get("collected_time")
     return {
         "kind": out["kind"],
-        "person": _tidy(out["person"]) if out.get("person") else None,
+        "person": clean_person(out.get("person")),
         "date": date if isinstance(date, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) else None,
         "collected_time": time if isinstance(time, str) and re.fullmatch(r"\d{2}:\d{2}", time) else None,
-        "lab": _tidy(out["lab"]) if out.get("lab") else None,
+        "lab": clean_lab(out.get("lab")),
         "values": values if out["kind"] == "lab" else [],
         "medicines": meds if out["kind"] == "prescription" else [],
     }, None

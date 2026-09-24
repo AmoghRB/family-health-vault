@@ -3,12 +3,15 @@ You read the text of ONE medical document (a lab report or a prescription) and c
 
 Rules:
 - Copy test names, numbers and units exactly as printed. Never convert units, never round, never compute anything.
+- "value" is the number ONLY (e.g. "7.2", "2,45,000"). Put the unit in "unit", never inside "value".
+- "unit" is only the measurement unit (e.g. "mg/dL", "%", "/cumm"). A reference range is never a unit.
 - If a unit is not printed next to a value, use null. Do not guess it.
 - Only include values that are actually printed. Never invent a test or a value.
 - "range" is the reference range exactly as printed (e.g. "70 - 100", "< 200"), or null.
 - "page" is the page number the value appears on (pages are marked "=== PAGE n ===").
 - "date": the sample collection date if printed, else the report date, as YYYY-MM-DD. Dates are day/month/year. Two-digit years are 20xx.
 - "collected_time": sample collection time as 24-hour HH:MM, or null.
+- "person": the patient's name only, without Mr./Mrs. or age/sex. "lab": the lab or clinic name only.
 - For a prescription, list each medicine's NAME only. Never include strength, dose or frequency.
 - "kind" is "prescription" if the document prescribes medicines, otherwise "lab".
 

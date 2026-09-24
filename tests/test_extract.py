@@ -90,3 +90,15 @@ def test_auto_uses_rules_when_ollama_off(monkeypatch):
     monkeypatch.setattr(ex.llm, "available", lambda refresh=False: False)
     r = ex.extract(FIX / "ramesh_2024-03-11_sunrise.pdf")
     assert len(r["values"]) == 10 and r["date"] == "2024-03-11"
+
+
+def test_llm_unit_inside_value_and_range_as_unit(monkeypatch):
+    # real qwen2.5 output on the Sri Sai layout, before clean-up
+    _fake_llm(monkeypatch, [{**GOOD, "person": "Mr. Ramesh Kumar (58Y/M)",
+                             "lab": "SRI SAI LAB · Main Road", "values": [
+        {"test": "HbA1c", "value": "7.2 %", "unit": None, "range": None, "page": 1},
+        {"test": "Urea", "value": "41", "unit": "(15-40)", "range": "(15-40)", "page": 1}]}])
+    r = ex.read_llm(["x"])
+    assert r["person"] == "Ramesh Kumar" and r["lab"] == "Sri Sai Lab"
+    assert r["values"][0] == {"test": "HbA1c", "value": "7.2", "unit": "%", "range": None, "page": 1}
+    assert r["values"][1] == {"test": "Urea", "value": "41", "unit": None, "range": "15-40", "page": 1}
