@@ -51,13 +51,59 @@ OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 MODEL = os.environ.get("VAULT_MODEL", "qwen2.5:7b-instruct")
 
 
+_available: bool | None = None
+
+
+def _get(path: str, timeout: float) -> dict:
+    with urllib.request.urlopen(OLLAMA_URL + path, timeout=timeout) as r:
+        return json.load(r)
+
+
+def _post(path: str, body: dict, timeout: float) -> dict:
+    req = urllib.request.Request(
+        OLLAMA_URL + path,
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.load(r)
+
+
 def available(refresh: bool = False) -> bool:
-    raise NotImplementedError  # TODO(EXTRACT)
+    """True if Ollama answers and MODEL is pulled. Cached; never raises."""
+    global _available
+    if _available is None or refresh:
+        try:
+            names = {m["name"] for m in _get("/api/tags", timeout=2).get("models", [])}
+            _available = MODEL in names or f"{MODEL}:latest" in names
+        except Exception:
+            _available = False
+    return _available
 
 
 def chat(system: str, user: str, as_json: bool = False, timeout: int = 180) -> str:
-    raise NotImplementedError  # TODO(EXTRACT)
+    """One chat turn at temperature 0. Raises RuntimeError on any failure."""
+    body = {
+        "model": MODEL,
+        "stream": False,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        "options": {"temperature": 0},
+    }
+    if as_json:
+        body["format"] = "json"
+    try:
+        return _post("/api/chat", body, timeout)["message"]["content"]
+    except Exception as e:
+        raise RuntimeError(f"Ollama chat failed: {e}") from e
 
 
 def chat_json(system: str, user: str) -> dict | None:
-    raise NotImplementedError  # TODO(EXTRACT)
+    """chat() in JSON mode, parsed. None on any error or if the reply isn't a JSON object."""
+    try:
+        out = json.loads(chat(system, user, as_json=True))
+    except Exception:
+        return None
+    return out if isinstance(out, dict) else None
