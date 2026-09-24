@@ -1,6 +1,6 @@
 """Ingest: one uploaded PDF → extracted → standardized → saved. Glue between modules.
 
-OWNER: Extraction & API role — name: ________ (fill in when you pick this)
+OWNER: Extraction role — name: ________ (fill in when you pick this)
 LANGUAGE / LIBS: Python 3.12, hashlib, shutil. Calls extract, standard, store, and
 reason.drug_class (the Reasoning & Submission owner) for medicines.
 

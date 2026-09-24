@@ -3,7 +3,7 @@
 The code version is [`src/contracts.py`](../src/contracts.py). The two must match.
 Change both together, and only after the group agrees.
 
-## 1. `extract.py` → `standard.py` (Extraction & API → Data & Standards)
+## 1. `extract.py` → `standard.py` (Extraction → Data & Standards)
 
 `extract(path)` returns one `ExtractedReport` per PDF. Values are copied **as printed**, as strings:
 
@@ -28,7 +28,7 @@ For a prescription: `"kind": "prescription"`, `"values": []`, `"medicines": [{"n
   "guessed": false }
 ```
 
-## 3. `GET /api/timeline/{person_id}` (Reasoning & Submission → Frontend & Demo)
+## 3. `GET /api/timeline/{person_id}` (Reasoning & Submission → Frontend, API & Demo)
 
 ```json
 { "person": "Ramesh Kumar", "person_id": 1,
@@ -42,7 +42,7 @@ For a prescription: `"kind": "prescription"`, `"values": []`, `"medicines": [{"n
   "caveats": ["The 'fasting' sample on 2025-03-15 was collected at 11:40."] }
 ```
 
-## 4. `GET /api/summary/{person_id}` (Reasoning & Submission → Frontend & Demo)
+## 4. `GET /api/summary/{person_id}` (Reasoning & Submission → Frontend, API & Demo)
 
 ```json
 { "person": "Ramesh Kumar", "generated": "2026-09-28",
@@ -53,7 +53,7 @@ For a prescription: `"kind": "prescription"`, `"values": []`, `"medicines": [{"n
   "intro": "Ramesh has 7 reports from March 2024 to August 2026. ..." }
 ```
 
-## 5. Other API routes (Extraction & API → Frontend & Demo)
+## 5. Other API routes (Extraction → Frontend, API & Demo)
 
 | Route | Returns |
 |---|---|

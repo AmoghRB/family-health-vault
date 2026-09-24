@@ -1,6 +1,6 @@
 """HTTP API + serves the web/ frontend. Run with ./run.sh (localhost only).
 
-OWNER: Extraction & API role — name: ________ (fill in when you pick this)
+OWNER: Frontend, API & Demo role — name: ________ (fill in when you pick this)
 LANGUAGE / LIBS: Python 3.12, FastAPI, Uvicorn, python-multipart.
 
 ────────────────────────────────── AI PROMPT ──────────────────────────────────
@@ -20,6 +20,12 @@ ROUTES (response shapes are in docs/interfaces.md, sections 3–5)
                                       [m["name"] for m in store.medicines(id)]); 404 if None
   DELETE /api/reports/{report_id}   → {"deleted": store.delete_report(id)}
   /  and every other path            → static files from web/ (already done, bottom of file)
+
+WHY THIS IS IN THE FRONTEND ROLE
+  These routes only return the JSON web/app.js reads, so whoever builds the page
+  builds the routes too. Until the other modules are ready, a route may return the
+  matching part of web/sample.json so the page works end to end; swap in the real
+  call (reason.timeline, ingest.ingest, …) as each owner merges.
 
 RULES
   - One module-level Store() shared by all routes.
@@ -47,11 +53,11 @@ app = FastAPI(title="Family Health Vault")
 
 @app.get("/api/status")
 def status():
-    # TODO(EXTRACT): use llm.available() once src/llm.py is implemented
+    # TODO(FRONTEND): use llm.available() once src/llm.py is implemented
     return {"ok": True, "llm": False, "model": llm.MODEL}
 
 
-# TODO(EXTRACT): /api/people, /api/upload, /api/timeline/{person_id},
+# TODO(FRONTEND): /api/people, /api/upload, /api/timeline/{person_id},
 #              /api/summary/{person_id}, DELETE /api/reports/{report_id}
 
 

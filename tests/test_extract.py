@@ -1,4 +1,4 @@
-"""Tests for src/extract.py (rules path, no LLM needed).  OWNER: Extraction & API role — name: ________ (fill in when you pick this).
+"""Tests for src/extract.py (rules path, no LLM needed).  OWNER: Extraction role — name: ________ (fill in when you pick this).
 Run: pytest -q tests/test_extract.py
 """
 

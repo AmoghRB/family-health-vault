@@ -1,4 +1,4 @@
-# demo/ (owner: Frontend & Demo role)
+# demo/ (owner: Frontend, API & Demo role)
 
 The demo video is a required submission item. Record it on **28 Sep**.
 

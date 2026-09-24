@@ -65,10 +65,27 @@ in the `Name` column (and in the `OWNER:` line at the top of each of their files
 | Role | Name | Files |
 |---|---|---|
 | **Data & Standards** | _______ | `tools/make_fake_reports.py`, `data/tests.yaml`, `src/standard.py`, `src/store.py`, `tests/test_standard.py`, `tests/test_store.py` |
-| **Frontend & Demo** | _______ | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `demo/` |
-| **Extraction & API** | _______ | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/api.py`, `src/ingest.py`, `tools/accuracy.py`, `tests/test_extract.py`, `tests/test_api.py` |
+| **Frontend, API & Demo** | _______ | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `src/api.py`, `tests/test_api.py`, `demo/` |
+| **Extraction** | _______ | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tests/test_extract.py` |
 | **Reasoning & Submission** | _______ | `src/reason.py`, `src/summary.py`, `data/rules.yaml`, `data/medicines.yaml`, `prompts/summary.txt`, `tests/test_reason.py`, `README.md` |
 | **Shared** (change only after the group agrees) | everyone | `src/contracts.py`, `docs/interfaces.md`, `requirements.txt`, `AGENTS.md` |
+
+### How to pick a role
+
+| Role | Load | Blocks others? | Best for someone who… |
+|---|---|---|---|
+| **Extraction** | Heaviest: messy PDFs, regex, local LLM, upload glue | Partly: nothing gets into the app without it | is strongest in Python and can debug when AI-written code breaks |
+| **Data & Standards** | Medium, but **most urgent** | **Yes:** everyone needs the fake reports + `tests.yaml` | can start **immediately** and is careful with details (units, ranges, SQL) |
+| **Reasoning & Submission** | Medium; builds the metformin flag, the demo's best moment | No: builds on fake rows | thinks logically, writes well, will own the final submission (the lead fits) |
+| **Frontend, API & Demo** | Light–medium; fully independent via `web/sample.json`, and `api.py` is thin routes returning exactly what the page reads | No | enjoys UI work, or has the least free time this week |
+
+**Picking order:** Data & Standards first, to whoever can start today (not anyone
+tied up until the 25th) → Extraction to the strongest Python person → Reasoning
+& Submission to the lead → Frontend, API & Demo to whoever is left.
+
+**So nobody waits:** Frontend builds against `web/sample.json`; Reasoning tests
+`trend()` and flags on hand-written rows; Extraction tests on the report text in
+`tests/test_extract.py` until the fake PDFs exist. Everything connects on **27 Sep**.
 
 ## Setup
 

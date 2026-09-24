@@ -1,5 +1,5 @@
 {
-  "_note": "Seed data in the shapes from docs/interfaces.md. OWNER: Frontend & Demo role. Extend freely (add Lakshmi, more tests), but keep the shapes.",
+  "_note": "Seed data in the shapes from docs/interfaces.md. OWNER: Frontend, API & Demo role. Extend freely (add Lakshmi, more tests), but keep the shapes.",
   "status": {
     "ok": true,
     "llm": false,

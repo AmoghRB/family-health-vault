@@ -1,4 +1,4 @@
-# web/vendor/ (owner: Frontend & Demo role)
+# web/vendor/ (owner: Frontend, API & Demo role)
 
 Third-party files served locally so the demo works **with Wi-Fi off**.
 

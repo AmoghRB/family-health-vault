@@ -1,4 +1,4 @@
-"""End-to-end API tests.  OWNER: Extraction & API role — name: ________ (fill in when you pick this).  Run: pytest -q tests/test_api.py
+"""End-to-end API tests.  OWNER: Frontend, API & Demo role — name: ________ (fill in when you pick this).  Run: pytest -q tests/test_api.py
 Needs everyone's modules, so expect these to pass last (target: 27 Sep).
 """
 

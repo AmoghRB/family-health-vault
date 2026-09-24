@@ -1,5 +1,5 @@
 /*
-OWNER: Frontend & Demo role — name: ________ (fill in when you pick this)
+OWNER: Frontend, API & Demo role — name: ________ (fill in when you pick this)
 LANGUAGE: vanilla JavaScript (ES2020+), no framework, no npm, no bundler.
           Chart.js 4 is available as the global `Chart` (web/vendor/).
 

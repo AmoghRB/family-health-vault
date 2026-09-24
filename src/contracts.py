@@ -20,7 +20,7 @@ Level = Literal["red", "amber", "green"]
 Status = Literal["low", "normal", "high", "unknown"]
 
 
-# ── 1. extract.py → standard.py (Extraction & API → Data & Standards) ────────────────
+# ── 1. extract.py → standard.py (Extraction → Data & Standards) ────────────────
 class RawValue(TypedDict):
     test: str              # exactly as printed, e.g. "Blood Sugar F"
     value: str             # exactly as printed, e.g. "131" or "6.6" (string: no parsing yet)
@@ -55,7 +55,7 @@ class StandardValue(TypedDict):
     guessed: bool              # True if alias or unit had to be guessed
 
 
-# ── 3. reason.py → api.py → web/app.js (Reasoning & Submission → Frontend & Demo) ────
+# ── 3. reason.py → api.py → web/app.js (Reasoning & Submission → Frontend, API & Demo) ────
 class Point(TypedDict):
     date: str                  # "YYYY-MM-DD"
     value: float
@@ -86,7 +86,7 @@ class Timeline(TypedDict):
     caveats: list[str]         # data-quality warnings (late "fasting" sample, duplicates…)
 
 
-# ── 4. summary.py → api.py → web/app.js (Reasoning & Submission → Frontend & Demo) ───
+# ── 4. summary.py → api.py → web/app.js (Reasoning & Submission → Frontend, API & Demo) ───
 class DoctorSummary(TypedDict):
     person: str
     generated: str             # "YYYY-MM-DD"
@@ -97,7 +97,7 @@ class DoctorSummary(TypedDict):
     intro: str                 # 2–3 sentences written by the LLM (or a template if Ollama is off)
 
 
-# ── 5. api.py responses (Extraction & API → Frontend & Demo) ─────────────────────────
+# ── 5. api.py responses (Extraction → Frontend, API & Demo) ─────────────────────────
 class Person(TypedDict):
     id: int
     name: str

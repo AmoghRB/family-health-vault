@@ -1,6 +1,6 @@
 """The ONLY place that talks to the local LLM (Ollama). Used by extract.py and summary.py.
 
-OWNER: Extraction & API role — name: ________ (fill in when you pick this)
+OWNER: Extraction role — name: ________ (fill in when you pick this)
 LANGUAGE / LIBS: Python 3.12, built-in `urllib.request` + `json`. No `requests`,
 no `ollama` package, no OpenAI SDK.
 
