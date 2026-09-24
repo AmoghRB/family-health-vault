@@ -1,6 +1,6 @@
 """Accuracy test: how many values does extraction + standardization read correctly?
 
-OWNER: Extraction role — name: ________ (fill in when you pick this)
+OWNER: Extraction (Person 2): Amogh R B
 LANGUAGE / LIBS: Python 3.12, json, argparse.
 RUN: python tools/accuracy.py [--mode auto|llm|rules] [-v]
 

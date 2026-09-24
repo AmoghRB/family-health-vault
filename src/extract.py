@@ -1,6 +1,6 @@
 """Extraction: PDF → ExtractedReport (values copied exactly as printed).
 
-OWNER: Extraction role — name: ________ (fill in when you pick this)
+OWNER: Extraction (Person 2): Amogh R B
 LANGUAGE / LIBS: Python 3.12, pdfplumber, json, re. LLM calls only via src/llm.py.
 
 ────────────────────────────────── AI PROMPT ──────────────────────────────────
