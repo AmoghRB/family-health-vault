@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OWNER: Reasoning & Submission role — name: ________ (fill in when you pick this)          FORMAT: YAML        USED BY: src/reason.py
+#
+# Cross-document rules: a medicine (from a prescription) + a lab trend (from lab
+# reports). A rule fires when the person takes a medicine of `drug_class` AND any
+# listed test meets its condition, judged on readings from the last one before
+# the medicine started onwards.
+#
+#   condition: rising | falling   trend over 3+ readings (reason.trend)
+#              above  | below     latest reading outside the normal range
+#   level:     red | amber | green
+#
+# AI PROMPT: "Add 3–5 more rules in exactly this format for common Indian
+#   prescriptions: statin + SGPT/SGOT rising, ACE inhibitor/ARB + potassium
+#   above, thyroid hormone + TSH below (over-replacement), vitamin D supplement +
+#   vitamin D back in range (green). test ids must exist in data/tests.yaml and
+#   drug classes in data/medicines.yaml. Titles describe, questions ask; no advice."
+# ─────────────────────────────────────────────────────────────────────────────
+
+- id: metformin_kidney
+  drug_class: biguanide
+  when: [{test: creatinine, condition: rising}, {test: egfr, condition: falling},
+         {test: urea, condition: rising}]
+  level: red
+  title: Kidney values changing since metformin started
+  ask: Should my kidney function be checked while I'm on metformin?
+
+# TODO(REASON): more rules

@@ -1,0 +1,11 @@
+{
+  // VS Code shows an "Install recommended extensions" prompt when you open the repo.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "redhat.vscode-yaml",
+    "ritwickdey.LiveServer",
+    "eamodio.gitlens"
+  ]
+}

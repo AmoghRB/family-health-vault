@@ -1,0 +1,17 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# OWNER: Reasoning & Submission role — name: ________ (fill in when you pick this)          FORMAT: YAML   USED BY: src/reason.py (drug_class)
+#
+# Medicine name → drug class. Only the class is used for reasoning; only the name
+# is ever shown back. Doses are never stored.
+#
+# AI PROMPT: "Extend this list with generic AND common Indian brand names
+#   (lowercase) for: sulfonylurea, statin, arb, ace_inhibitor, ccb,
+#   thyroid_hormone, iron, vitamin_d, vitamin_b12, ppi. Same format."
+# ─────────────────────────────────────────────────────────────────────────────
+
+biguanide: [metformin, glycomet, glucophage, obimet, gluformin]
+statin: [atorvastatin, rosuvastatin, simvastatin, atorva, rosuvas, storvas]
+thyroid_hormone: [levothyroxine, thyronorm, eltroxin, thyrox]
+vitamin_d: [cholecalciferol, vitamin d3, calcirol, uprise d3]
+
+# TODO(REASON): more classes

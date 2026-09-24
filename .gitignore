@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# The vault itself: real uploads + database never go in git
+vault_data/
+
+# Generated fake reports (regenerate with: python tools/make_fake_reports.py)
+samples/*.pdf
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/

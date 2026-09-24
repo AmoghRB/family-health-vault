@@ -1,0 +1,57 @@
+<!--
+OWNER: Frontend & Demo role — name: ________ (fill in when you pick this)
+LANGUAGE: plain HTML5. No framework, no build step, no CDN links.
+
+──────────────────────────────── AI PROMPT ────────────────────────────────
+Paste this comment + AGENTS.md + docs/interfaces.md into your AI, then say:
+"Build web/index.html exactly as described. Only edit this file."
+
+GOAL: the single page of the app. Four areas, top to bottom on mobile,
+two columns on desktop (left: upload + people, right: chart + flags):
+
+  1. Header      app name "Family Health Vault", a status pill (id="llm-status")
+                 showing "Local AI on" / "Local AI off (rules mode)", and a
+                 permanent line: "Not medical advice. Every flag is a question
+                 for your doctor."
+  2. Upload      drop zone (id="drop") + <input type="file" multiple accept=".pdf">,
+                 and a results list (id="upload-results") for UploadResult messages.
+  3. People      person switcher (id="people"): one button per person.
+  4. Timeline    test picker (id="test-picker", a <select> grouped by category),
+                 and <canvas id="chart"> for Chart.js.
+  5. Flags       list of flag cards (id="flags") + caveats (id="caveats").
+  6. Summary     button (id="summary-btn") that shows the doctor summary in a
+                 <dialog id="summary"> with a Print button (window.print()).
+
+RULES
+  - Load scripts at the end of <body>, in this order:
+      <script src="vendor/chart.umd.min.js"></script>
+      <script src="app.js"></script>
+    Use RELATIVE paths (no leading "/") so it works from FastAPI and from
+    `python -m http.server`.
+  - Semantic HTML (header, main, section, button), every input has a label.
+  - Keep ids exactly as above: app.js depends on them.
+
+DONE WHEN: opening http://127.0.0.1:8000 (cd web && python -m http.server 8000)
+shows all areas filled from sample.json with no console errors.
+────────────────────────────────────────────────────────────────────────────
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Family Health Vault</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Family Health Vault</h1>
+    <!-- TODO(FRONTEND): status pill, disclaimer -->
+  </header>
+  <main>
+    <!-- TODO(FRONTEND): upload, people, timeline, flags, summary sections -->
+  </main>
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

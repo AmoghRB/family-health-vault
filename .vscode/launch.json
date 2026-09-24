@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run app (FastAPI, http://127.0.0.1:8765)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["src.api:app", "--host", "127.0.0.1", "--port", "8765", "--reload"],
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true
+    },
+    {
+      "name": "Generate fake reports",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/make_fake_reports.py",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Accuracy test",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/accuracy.py",
+      "args": ["-v"],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
