@@ -59,15 +59,15 @@ and nobody waits on anybody.
 
 ## Who owns what
 
-Four roles. **Not assigned yet:** each person picks one and writes their name
-in the `Name` column (and in the `OWNER:` line at the top of each of their files).
+Four roles, assigned 24 Sep. **Your first commit:** put your name in the `OWNER:`
+line at the top of each of your files (it checks your Git setup works).
 
 | Role | Name | Files |
 |---|---|---|
-| **Data & Standards** | _______ | `tools/make_fake_reports.py`, `data/tests.yaml`, `src/standard.py`, `src/store.py`, `tests/test_standard.py`, `tests/test_store.py` |
-| **Frontend, API & Demo** | _______ | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `src/api.py`, `tests/test_api.py`, `demo/` |
-| **Extraction** | _______ | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tests/test_extract.py` |
-| **Reasoning & Submission** | _______ | `src/reason.py`, `src/summary.py`, `data/rules.yaml`, `data/medicines.yaml`, `prompts/summary.txt`, `tests/test_reason.py`, `README.md` |
+| **Data & Standards** (Person 1) | Pankaj Kumar B S (@PunkK9) | `tools/make_fake_reports.py`, `data/tests.yaml`, `src/standard.py`, `src/store.py`, `tests/test_standard.py`, `tests/test_store.py` |
+| **Frontend, API & Demo** (Person 4) | Abhishek Chugh (@abhichugh2006-design) | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `src/api.py`, `tests/test_api.py`, `demo/` |
+| **Extraction** (Person 2) | Amogh R B (@AmoghRB) | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tests/test_extract.py` |
+| **Reasoning & Submission** (Person 3) | Aditya Jibrael (@Aditya-JIB3012) | `src/reason.py`, `src/summary.py`, `data/rules.yaml`, `data/medicines.yaml`, `prompts/summary.txt`, `tests/test_reason.py`, `README.md` |
 | **Shared** (change only after the group agrees) | everyone | `src/contracts.py`, `docs/interfaces.md`, `requirements.txt`, `AGENTS.md` |
 
 ### How to pick a role
