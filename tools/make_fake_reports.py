@@ -1,76 +1,97 @@
-"""Generate synthetic lab reports + prescriptions as PDFs, with ground truth.
+"""OWNER: Pankaj Kumar B S
 
-OWNER: Data & Standards role — name: ________ (fill in when you pick this)
-LANGUAGE / LIBS: Python 3.12, ReportLab (reportlab.pdfgen.canvas), PyYAML, json.
-RUN: python tools/make_fake_reports.py   → writes samples/*.pdf + samples/ground_truth.json
-
-────────────────────────────────── AI PROMPT ──────────────────────────────────
-Paste this docstring + AGENTS.md into your AI, then say:
-"Implement tools/make_fake_reports.py exactly as described. Only edit this file."
-
-GOAL
-  We can't use real medical reports, so we generate realistic fake ones. They
-  are (a) the demo data and (b) the accuracy test: extract.py reads these PDFs
-  and tools/accuracy.py compares what it read against ground_truth.json.
-
-WHAT TO GENERATE
-  2 people:  "Ramesh Kumar" (58, diabetic, on metformin) and
-             "Lakshmi Kumar" (54, thyroid, low vitamin D).
-  12+ lab PDFs, dated between 2024-03 and 2026-08, in 3 different layouts:
-    - "Sunrise Diagnostics"  → Apollo-style: bordered TABLE with columns
-                                Test | Result | Unit | Reference Range
-    - "ThyroPlus Labs"       → Thyrocare-style: LIST "TEST NAME ..... value unit"
-    - "Sri Sai Clinical Lab" → plain local printout: "Blood Sugar F : 131",
-                                some units NOT printed, dates as dd-mm-yy
-  Units must differ between labs (glucose mg/dL in one, mmol/L in another;
-  creatinine mg/dL vs µmol/L) so the standardizer has real work to do.
-  2 prescription PDFs (one per person): doctor name, date, medicine names
-  (Ramesh: Metformin 500mg, Atorvastatin 10mg; Lakshmi: Thyronorm 50mcg,
-  Uprise D3). Doses are printed on the PDF (like real ones) but the extractor
-  must ignore them.
-
-  STORY THE DATA MUST TELL (the demo depends on it):
-    - Ramesh: HbA1c rising 6.1 → 7.2 over the period; creatinine rising
-      0.9 → 1.3 after metformin started (2024-10). This triggers the
-      cross-document flag in reason.py.
-    - Ramesh: one "fasting" sample collected at 11:40 (after 10 AM)
-      → data-quality caveat.
-    - Lakshmi: vitamin D low then improving after supplements (a green flag).
-
-  Each report also carries: patient name, sample collection date AND time,
-  lab name, a header/footer, and at least one page with 8–15 tests.
-
-GROUND TRUTH  samples/ground_truth.json
-  {"<filename>.pdf": {"kind": "lab", "person": "...", "date": "YYYY-MM-DD",
-                      "values": {"<test_id>": <value in CANONICAL unit>, ...},
-                      "medicines": ["metformin", ...]}}
-  Store the canonical (mg/dL etc.) value, i.e. what standardize() should
-  produce, so accuracy can be checked end to end.
-
-RULES
-  - Deterministic: use random.Random(42), same output every run.
-  - Filenames: <firstname>_<YYYY-MM-DD>_<labslug>.pdf, e.g. ramesh_2026-08-14_srisai.pdf
-  - Read test ids / units / conversion factors from data/tests.yaml, don't hardcode twice.
-
-DONE WHEN
-  Running the script writes ≥14 PDFs + ground_truth.json, and the PDFs look
-  like three visibly different labs when opened.
-───────────────────────────────────────────────────────────────────────────────
+Generates synthetic lab report PDFs for testing. Never commit real reports —
+these are fabricated names and fabricated values only.
 """
 
 from __future__ import annotations
 
-import json
+import os
 import random
-import sys
-from pathlib import Path
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from src import DATA, SAMPLES  # noqa: E402
+OUTPUT_DIR = "sample_reports"
+
+# Each "case" is (test name as this lab prints it, value, unit or None, printed range or None)
+APOLLO_STYLE = [
+    ("Glucose, Fasting (Plasma)", "108", "mg/dL", "70 - 100"),
+    ("HbA1c", "6.1", "%", None),
+    ("Creatinine", "1.1", "mg/dL", "0.6 - 1.3"),
+    ("Total Cholesterol", "215", "mg/dL", "< 200"),
+]
+
+THYROCARE_STYLE = [
+    ("FBS", "6.6", "mmol/L", None),          # needs unit conversion
+    ("Glycated Hemoglobin", "7.2", "%", None),
+    ("Serum Creatinine", "97.2", "umol/L", None),  # needs unit conversion
+    ("TSH", "3.8", "mIU/L", "0.4 - 4.0"),
+]
+
+LOCAL_LAB_STYLE = [
+    ("Blood Sugar F", "131", None, None),     # missing unit entirely — must guess
+    ("Hb", "12.4", "g/dL", None),
+    ("Creat", "1.4", None, None),              # missing unit — must guess
+    ("Urea", "45", "mg/dL", "15 - 40"),
+]
+
+LAB_STYLES = {
+    "sunrise_diagnostics": APOLLO_STYLE,
+    "thyrocare_style": THYROCARE_STYLE,
+    "local_lab": LOCAL_LAB_STYLE,
+}
+
+PATIENTS = ["Ramesh Kumar", "Lakshmi Iyer"]
+DATES = ["2024-03-11", "2025-01-20", "2026-08-14"]
+
+
+def make_pdf(path: str, patient: str, lab: str, date: str, collected_time: str, values: list[tuple]) -> None:
+    c = canvas.Canvas(path, pagesize=A4)
+    width, height = A4
+    y = height - 80
+
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, lab.replace("_", " ").title())
+    y -= 30
+
+    c.setFont("Helvetica", 11)
+    c.drawString(50, y, f"Patient: {patient}")
+    y -= 18
+    c.drawString(50, y, f"Sample Date: {date}   Collected: {collected_time}")
+    y -= 30
+
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(50, y, "Test")
+    c.drawString(250, y, "Result")
+    c.drawString(320, y, "Unit")
+    c.drawString(400, y, "Reference Range")
+    y -= 20
+
+    c.setFont("Helvetica", 10)
+    for test, value, unit, ref_range in values:
+        c.drawString(50, y, test)
+        c.drawString(250, y, value)
+        c.drawString(320, y, unit or "")
+        c.drawString(400, y, ref_range or "")
+        y -= 18
+
+    c.save()
 
 
 def main() -> None:
-    raise NotImplementedError  # TODO(DATA)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    random.seed(42)  # reproducible fake data
+
+    for patient in PATIENTS:
+        for i, date in enumerate(DATES):
+            lab_name = list(LAB_STYLES.keys())[i % len(LAB_STYLES)]
+            values = LAB_STYLES[lab_name]
+            collected_time = "08:15" if i != 1 else "11:40"  # deliberately late "fasting" sample once
+
+            filename = f"{patient.split()[0].lower()}_{date}_{lab_name}.pdf"
+            path = os.path.join(OUTPUT_DIR, filename)
+            make_pdf(path, patient, lab_name, date, collected_time, values)
+            print(f"Generated: {path}")
 
 
 if __name__ == "__main__":
