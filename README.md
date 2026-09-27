@@ -1,6 +1,6 @@
 # Family Health Vault
 
-**Team Ghost Kernel · ASYNC'26 · Track 1 (Wellness & Lifestyle)**
+**Team Ghost Kernel · ASYNC'26 · Track 1 (Sovereign AI)**
 
 An offline "second brain" for a family's lab reports and prescriptions. Upload
 PDFs; the vault reads them, converts every value to one standard unit, tracks
@@ -8,9 +8,10 @@ each test over time, and flags what is worth asking the doctor about, including
 patterns that only show up across documents (e.g. metformin on a prescription +
 rising creatinine on lab reports). Nothing leaves the laptop.
 
-> ⚠️ **Status: skeleton.** Every file is a stub with instructions in its header.
-> The owner builds it (with AI help) by following that header. See
-> [CONTRIBUTING.md](CONTRIBUTING.md) before you write any code.
+> ⚠️ **Status: in progress.** Extraction (PDF reading, local-LLM reader, upload
+> pipeline) is built and tested; the other modules are still stubs with
+> instructions in their header. The owner builds each one (with AI help) by
+> following that header. See [CONTRIBUTING.md](CONTRIBUTING.md) before you write any code.
 
 ---
 
@@ -66,7 +67,7 @@ line at the top of each of your files (it checks your Git setup works).
 |---|---|---|
 | **Data & Standards** (Person 1) | Pankaj Kumar B S (@PunkK9) | `tools/make_fake_reports.py`, `data/tests.yaml`, `src/standard.py`, `src/store.py`, `tests/test_standard.py`, `tests/test_store.py` |
 | **Frontend, API & Demo** (Person 4) | Abhishek Chugh (@abhichugh2006-design) | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `src/api.py`, `tests/test_api.py`, `demo/` |
-| **Extraction** (Person 2) | Amogh R B (@AmoghRB) | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tests/test_extract.py` |
+| **Extraction** (Person 2) | Amogh R B (@AmoghRB) | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tools/make_test_pdfs.py`, `tests/fixtures/`, `tests/test_extract.py`, `tests/test_ingest.py` |
 | **Reasoning & Submission** (Person 3) | Aditya Jibrael (@Aditya-JIB3012) | `src/reason.py`, `src/summary.py`, `data/rules.yaml`, `data/medicines.yaml`, `prompts/summary.txt`, `tests/test_reason.py`, `README.md` |
 | **Shared** (change only after the group agrees) | everyone | `src/contracts.py`, `docs/interfaces.md`, `requirements.txt`, `AGENTS.md` |
 
