@@ -45,6 +45,7 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.parse
 import urllib.request
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
@@ -53,15 +54,25 @@ MODEL = os.environ.get("VAULT_MODEL", "qwen2.5:7b-instruct")
 
 _available: bool | None = None
 
+LOOPBACK = {"127.0.0.1", "localhost", "::1"}
+
+
+def _base() -> str:
+    """OLLAMA_URL, but only if it points at this machine. Report text never leaves the device."""
+    u = urllib.parse.urlparse(OLLAMA_URL)
+    if u.scheme != "http" or u.hostname not in LOOPBACK:
+        raise RuntimeError(f"OLLAMA_URL must be a local http address, got {OLLAMA_URL!r}")
+    return OLLAMA_URL.rstrip("/")
+
 
 def _get(path: str, timeout: float) -> dict:
-    with urllib.request.urlopen(OLLAMA_URL + path, timeout=timeout) as r:
+    with urllib.request.urlopen(_base() + path, timeout=timeout) as r:
         return json.load(r)
 
 
 def _post(path: str, body: dict, timeout: float) -> dict:
     req = urllib.request.Request(
-        OLLAMA_URL + path,
+        _base() + path,
         data=json.dumps(body).encode(),
         headers={"Content-Type": "application/json"},
     )

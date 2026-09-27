@@ -2,6 +2,8 @@
 Run: pytest -q tests/test_extract.py
 """
 
+import pytest
+
 from src.extract import read_rules
 
 LAB_PAGE = """SRI SAI CLINICAL LABORATORY
@@ -102,3 +104,24 @@ def test_llm_unit_inside_value_and_range_as_unit(monkeypatch):
     assert r["person"] == "Ramesh Kumar" and r["lab"] == "Sri Sai Lab"
     assert r["values"][0] == {"test": "HbA1c", "value": "7.2", "unit": "%", "range": None, "page": 1}
     assert r["values"][1] == {"test": "Urea", "value": "41", "unit": None, "range": "15-40", "page": 1}
+
+
+# ── llm.py: only ever talks to Ollama on this machine ────────────────────────
+from src import llm  # noqa: E402
+
+
+def test_llm_refuses_remote_ollama_url(monkeypatch):
+    monkeypatch.setattr(llm, "OLLAMA_URL", "http://example.com:11434")
+    monkeypatch.setattr(llm.urllib.request, "urlopen",
+                        lambda *a, **k: pytest.fail("request left the machine"))
+    assert llm.available(refresh=True) is False
+    with pytest.raises(RuntimeError, match="local"):
+        llm.chat("s", "u")
+    assert llm.chat_json("s", "u") is None
+    monkeypatch.setattr(llm, "_available", None)
+
+
+def test_llm_accepts_loopback_urls(monkeypatch):
+    for url in ("http://127.0.0.1:11434", "http://localhost:11434/", "http://[::1]:11434"):
+        monkeypatch.setattr(llm, "OLLAMA_URL", url)
+        assert llm._base().startswith("http://")
