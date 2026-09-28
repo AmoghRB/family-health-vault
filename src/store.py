@@ -6,6 +6,7 @@ LANGUAGE / LIBS: Python 3.12, built-in `sqlite3` only. No ORM (no SQLAlchemy).
 from __future__ import annotations
 
 import hashlib
+import json
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -54,6 +55,21 @@ CREATE TABLE IF NOT EXISTS medicines (
     name TEXT NOT NULL,
     drug_class TEXT,
     start_date TEXT
+);
+
+CREATE TABLE IF NOT EXISTS doctor_questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id INTEGER NOT NULL REFERENCES people(id),
+    question TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS saved_summaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id INTEGER NOT NULL REFERENCES people(id),
+    generated TEXT NOT NULL,
+    summary_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 """
 
@@ -204,3 +220,49 @@ class Store:
         cur = self.conn.execute("DELETE FROM reports WHERE id = ?", (report_id,))
         self.conn.commit()
         return cur.rowcount > 0
+
+    def add_question(self, person_id: int, question: str) -> int:
+        q = question.strip()
+        if not q:
+            raise ValueError("question is empty")
+        cur = self.conn.execute(
+            "INSERT INTO doctor_questions (person_id, question) VALUES (?, ?)",
+            (person_id, q),
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
+    def list_questions(self, person_id: int) -> list[dict[str, Any]]:
+        cur = self.conn.execute(
+            "SELECT id, person_id, question, created_at FROM doctor_questions WHERE person_id = ? ORDER BY id ASC",
+            (person_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+    def delete_question(self, question_id: int) -> bool:
+        cur = self.conn.execute("DELETE FROM doctor_questions WHERE id = ?", (question_id,))
+        self.conn.commit()
+        return cur.rowcount > 0
+
+    def save_summary(self, person_id: int, summary: dict[str, Any]) -> int:
+        cur = self.conn.execute(
+            "INSERT INTO saved_summaries (person_id, generated, summary_json) VALUES (?, ?, ?)",
+            (person_id, summary.get("generated", ""), json.dumps(summary)),
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
+    def list_summaries(self, person_id: int) -> list[dict[str, Any]]:
+        cur = self.conn.execute(
+            "SELECT id, person_id, generated, created_at FROM saved_summaries WHERE person_id = ? ORDER BY id DESC",
+            (person_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+    def get_summary(self, summary_id: int) -> dict[str, Any] | None:
+        cur = self.conn.execute(
+            "SELECT summary_json FROM saved_summaries WHERE id = ?",
+            (summary_id,),
+        )
+        row = cur.fetchone()
+        return json.loads(row["summary_json"]) if row else None
