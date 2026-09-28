@@ -1,0 +1,918 @@
+{
+  "ramesh_2024-03-11_sunrise.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "2024-03-11",
+    "time": "08:15",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Glucose, Fasting (Plasma)",
+        "raw_value": "105",
+        "raw_unit": "mg/dL",
+        "canonical_val": 105.0
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "HbA1c",
+        "raw_value": "6.1",
+        "raw_unit": "%",
+        "canonical_val": 6.1
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Serum Creatinine",
+        "raw_value": "0.9",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.9
+      },
+      {
+        "test_id": "blood_urea",
+        "raw_test": "Blood Urea",
+        "raw_value": "24",
+        "raw_unit": "mg/dL",
+        "canonical_val": 24.0
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "210",
+        "raw_unit": "mg/dL",
+        "canonical_val": 210.0
+      },
+      {
+        "test_id": "hdl_cholesterol",
+        "raw_test": "HDL Cholesterol",
+        "raw_value": "42",
+        "raw_unit": "mg/dL",
+        "canonical_val": 42.0
+      },
+      {
+        "test_id": "ldl_cholesterol",
+        "raw_test": "LDL Cholesterol",
+        "raw_value": "142",
+        "raw_unit": "mg/dL",
+        "canonical_val": 142.0
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "14.2",
+        "raw_unit": "g/dL",
+        "canonical_val": 14.2
+      }
+    ]
+  },
+  "ramesh_2024-07-15_thyroplus.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "2024-07-15",
+    "time": "08:30",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "FBS",
+        "raw_value": "6.1",
+        "raw_unit": "mmol/L",
+        "canonical_val": 109.8
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "HbA1c",
+        "raw_value": "6.3",
+        "raw_unit": "%",
+        "canonical_val": 6.3
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "0.95",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.95
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "215",
+        "raw_unit": "mg/dL",
+        "canonical_val": 215.0
+      },
+      {
+        "test_id": "triglycerides",
+        "raw_test": "Triglycerides",
+        "raw_value": "165",
+        "raw_unit": "mg/dL",
+        "canonical_val": 165.0
+      },
+      {
+        "test_id": "sgpt",
+        "raw_test": "SGPT",
+        "raw_value": "32",
+        "raw_unit": "U/L",
+        "canonical_val": 32.0
+      },
+      {
+        "test_id": "sgot",
+        "raw_test": "SGOT",
+        "raw_value": "28",
+        "raw_unit": "U/L",
+        "canonical_val": 28.0
+      },
+      {
+        "test_id": "total_wbc",
+        "raw_test": "Total WBC Count",
+        "raw_value": "6800",
+        "raw_unit": "cells/cumm",
+        "canonical_val": 6800.0
+      }
+    ]
+  },
+  "ramesh_2025-01-20_srisai.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "20-01-25",
+    "time": "11:40",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Blood Sugar F",
+        "raw_value": "118",
+        "raw_unit": null,
+        "canonical_val": 118.0
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "HbA1c",
+        "raw_value": "6.6",
+        "raw_unit": "%",
+        "canonical_val": 6.6
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "1.0",
+        "raw_unit": "mg/dL",
+        "canonical_val": 1.0
+      },
+      {
+        "test_id": "blood_urea",
+        "raw_test": "Urea",
+        "raw_value": "28",
+        "raw_unit": "mg/dL",
+        "canonical_val": 28.0
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Cholesterol Total",
+        "raw_value": "195",
+        "raw_unit": "mg/dL",
+        "canonical_val": 195.0
+      },
+      {
+        "test_id": "ldl_cholesterol",
+        "raw_test": "LDL",
+        "raw_value": "130",
+        "raw_unit": "mg/dL",
+        "canonical_val": 130.0
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hb",
+        "raw_value": "13.9",
+        "raw_unit": "g/dL",
+        "canonical_val": 13.9
+      },
+      {
+        "test_id": "esr",
+        "raw_test": "ESR",
+        "raw_value": "12",
+        "raw_unit": "mm/hr",
+        "canonical_val": 12.0
+      }
+    ]
+  },
+  "ramesh_2025-06-18_sunrise.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "2025-06-18",
+    "time": "08:20",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Glucose, Fasting",
+        "raw_value": "122",
+        "raw_unit": "mg/dL",
+        "canonical_val": 122.0
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "Glycated Hemoglobin",
+        "raw_value": "6.8",
+        "raw_unit": "%",
+        "canonical_val": 6.8
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Serum Creatinine",
+        "raw_value": "1.1",
+        "raw_unit": "mg/dL",
+        "canonical_val": 1.1
+      },
+      {
+        "test_id": "uric_acid",
+        "raw_test": "Uric Acid",
+        "raw_value": "5.4",
+        "raw_unit": "mg/dL",
+        "canonical_val": 5.4
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "188",
+        "raw_unit": "mg/dL",
+        "canonical_val": 188.0
+      },
+      {
+        "test_id": "hdl_cholesterol",
+        "raw_test": "HDL Cholesterol",
+        "raw_value": "44",
+        "raw_unit": "mg/dL",
+        "canonical_val": 44.0
+      },
+      {
+        "test_id": "triglycerides",
+        "raw_test": "Triglycerides",
+        "raw_value": "152",
+        "raw_unit": "mg/dL",
+        "canonical_val": 152.0
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "14.0",
+        "raw_unit": "g/dL",
+        "canonical_val": 14.0
+      }
+    ]
+  },
+  "ramesh_2025-11-25_thyroplus.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "2025-11-25",
+    "time": "08:45",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "FBS",
+        "raw_value": "6.9",
+        "raw_unit": "mmol/L",
+        "canonical_val": 124.2
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "HbA1c",
+        "raw_value": "6.9",
+        "raw_unit": "%",
+        "canonical_val": 6.9
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Serum Creatinine",
+        "raw_value": "1.18",
+        "raw_unit": "mg/dL",
+        "canonical_val": 1.18
+      },
+      {
+        "test_id": "blood_urea",
+        "raw_test": "Blood Urea",
+        "raw_value": "32",
+        "raw_unit": "mg/dL",
+        "canonical_val": 32.0
+      },
+      {
+        "test_id": "ldl_cholesterol",
+        "raw_test": "LDL Cholesterol",
+        "raw_value": "124",
+        "raw_unit": "mg/dL",
+        "canonical_val": 124.0
+      },
+      {
+        "test_id": "sgpt",
+        "raw_test": "SGPT",
+        "raw_value": "35",
+        "raw_unit": "U/L",
+        "canonical_val": 35.0
+      },
+      {
+        "test_id": "platelet_count",
+        "raw_test": "Platelet Count",
+        "raw_value": "240000",
+        "raw_unit": "cells/cumm",
+        "canonical_val": 240000.0
+      },
+      {
+        "test_id": "total_protein",
+        "raw_test": "Total Protein",
+        "raw_value": "7.1",
+        "raw_unit": "g/dL",
+        "canonical_val": 7.1
+      }
+    ]
+  },
+  "ramesh_2026-04-12_srisai.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "12-04-26",
+    "time": "08:10",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Blood Sugar F",
+        "raw_value": "129",
+        "raw_unit": null,
+        "canonical_val": 129.0
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "HbA1c",
+        "raw_value": "7.1",
+        "raw_unit": "%",
+        "canonical_val": 7.1
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "1.24",
+        "raw_unit": "mg/dL",
+        "canonical_val": 1.24
+      },
+      {
+        "test_id": "blood_urea",
+        "raw_test": "Urea",
+        "raw_value": "36",
+        "raw_unit": "mg/dL",
+        "canonical_val": 36.0
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "182",
+        "raw_unit": "mg/dL",
+        "canonical_val": 182.0
+      },
+      {
+        "test_id": "hdl_cholesterol",
+        "raw_test": "HDL",
+        "raw_value": "45",
+        "raw_unit": "mg/dL",
+        "canonical_val": 45.0
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hb",
+        "raw_value": "13.6",
+        "raw_unit": "g/dL",
+        "canonical_val": 13.6
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Calcium",
+        "raw_value": "9.2",
+        "raw_unit": "mg/dL",
+        "canonical_val": 9.2
+      }
+    ]
+  },
+  "ramesh_2026-08-14_sunrise.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "2026-08-14",
+    "time": "08:15",
+    "tests": [
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Glucose, Fasting (Plasma)",
+        "raw_value": "131",
+        "raw_unit": "mg/dL",
+        "canonical_val": 131.0
+      },
+      {
+        "test_id": "hba1c",
+        "raw_test": "HbA1c",
+        "raw_value": "7.2",
+        "raw_unit": "%",
+        "canonical_val": 7.2
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Serum Creatinine",
+        "raw_value": "1.3",
+        "raw_unit": "mg/dL",
+        "canonical_val": 1.3
+      },
+      {
+        "test_id": "blood_urea",
+        "raw_test": "Blood Urea",
+        "raw_value": "39",
+        "raw_unit": "mg/dL",
+        "canonical_val": 39.0
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "178",
+        "raw_unit": "mg/dL",
+        "canonical_val": 178.0
+      },
+      {
+        "test_id": "ldl_cholesterol",
+        "raw_test": "LDL Cholesterol",
+        "raw_value": "121",
+        "raw_unit": "mg/dL",
+        "canonical_val": 121.0
+      },
+      {
+        "test_id": "serum_potassium",
+        "raw_test": "Serum Potassium",
+        "raw_value": "4.6",
+        "raw_unit": "mEq/L",
+        "canonical_val": 4.6
+      },
+      {
+        "test_id": "serum_sodium",
+        "raw_test": "Serum Sodium",
+        "raw_value": "139",
+        "raw_unit": "mEq/L",
+        "canonical_val": 139.0
+      }
+    ]
+  },
+  "lakshmi_2024-04-10_sunrise.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "2024-04-10",
+    "time": "08:30",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "4.8",
+        "raw_unit": "\u00b5IU/mL",
+        "canonical_val": 4.8
+      },
+      {
+        "test_id": "total_t3",
+        "raw_test": "Total T3",
+        "raw_value": "92",
+        "raw_unit": "ng/dL",
+        "canonical_val": 92.0
+      },
+      {
+        "test_id": "total_t4",
+        "raw_test": "Total T4",
+        "raw_value": "5.6",
+        "raw_unit": "\u00b5g/dL",
+        "canonical_val": 5.6
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "11.6",
+        "raw_unit": "g/dL",
+        "canonical_val": 11.6
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Calcium",
+        "raw_value": "8.4",
+        "raw_unit": "mg/dL",
+        "canonical_val": 8.4
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "190",
+        "raw_unit": "mg/dL",
+        "canonical_val": 190.0
+      },
+      {
+        "test_id": "hdl_cholesterol",
+        "raw_test": "HDL Cholesterol",
+        "raw_value": "48",
+        "raw_unit": "mg/dL",
+        "canonical_val": 48.0
+      },
+      {
+        "test_id": "total_wbc",
+        "raw_test": "Total WBC Count",
+        "raw_value": "6200",
+        "raw_unit": "cells/cumm",
+        "canonical_val": 6200.0
+      }
+    ]
+  },
+  "lakshmi_2024-09-15_thyroplus.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "2024-09-15",
+    "time": "08:45",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "5.2",
+        "raw_unit": "mIU/L",
+        "canonical_val": 5.2
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "11.8",
+        "raw_unit": "g/dL",
+        "canonical_val": 11.8
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Serum Calcium",
+        "raw_value": "8.6",
+        "raw_unit": "mg/dL",
+        "canonical_val": 8.6
+      },
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "FBS",
+        "raw_value": "5.1",
+        "raw_unit": "mmol/L",
+        "canonical_val": 91.8
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "0.78",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.78
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "185",
+        "raw_unit": "mg/dL",
+        "canonical_val": 185.0
+      },
+      {
+        "test_id": "triglycerides",
+        "raw_test": "Triglycerides",
+        "raw_value": "130",
+        "raw_unit": "mg/dL",
+        "canonical_val": 130.0
+      },
+      {
+        "test_id": "esr",
+        "raw_test": "ESR",
+        "raw_value": "18",
+        "raw_unit": "mm/hr",
+        "canonical_val": 18.0
+      }
+    ]
+  },
+  "lakshmi_2025-02-14_srisai.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "14-02-25",
+    "time": "09:10",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "3.8",
+        "raw_unit": "\u00b5IU/mL",
+        "canonical_val": 3.8
+      },
+      {
+        "test_id": "total_t4",
+        "raw_test": "T4 Total",
+        "raw_value": "7.2",
+        "raw_unit": "\u00b5g/dL",
+        "canonical_val": 7.2
+      },
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Blood Sugar F",
+        "raw_value": "94",
+        "raw_unit": null,
+        "canonical_val": 94.0
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "0.80",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.8
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hb",
+        "raw_value": "12.3",
+        "raw_unit": "g/dL",
+        "canonical_val": 12.3
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Calcium",
+        "raw_value": "9.1",
+        "raw_unit": "mg/dL",
+        "canonical_val": 9.1
+      },
+      {
+        "test_id": "sgpt",
+        "raw_test": "SGPT",
+        "raw_value": "22",
+        "raw_unit": "U/L",
+        "canonical_val": 22.0
+      },
+      {
+        "test_id": "platelet_count",
+        "raw_test": "Platelet Count",
+        "raw_value": "280000",
+        "raw_unit": "cells/cumm",
+        "canonical_val": 280000.0
+      }
+    ]
+  },
+  "lakshmi_2025-07-22_sunrise.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "2025-07-22",
+    "time": "08:15",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "3.1",
+        "raw_unit": "\u00b5IU/mL",
+        "canonical_val": 3.1
+      },
+      {
+        "test_id": "total_t3",
+        "raw_test": "Total T3",
+        "raw_value": "115",
+        "raw_unit": "ng/dL",
+        "canonical_val": 115.0
+      },
+      {
+        "test_id": "total_t4",
+        "raw_test": "Total T4",
+        "raw_value": "8.1",
+        "raw_unit": "\u00b5g/dL",
+        "canonical_val": 8.1
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "12.8",
+        "raw_unit": "g/dL",
+        "canonical_val": 12.8
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Serum Calcium",
+        "raw_value": "9.4",
+        "raw_unit": "mg/dL",
+        "canonical_val": 9.4
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "175",
+        "raw_unit": "mg/dL",
+        "canonical_val": 175.0
+      },
+      {
+        "test_id": "hdl_cholesterol",
+        "raw_test": "HDL Cholesterol",
+        "raw_value": "52",
+        "raw_unit": "mg/dL",
+        "canonical_val": 52.0
+      },
+      {
+        "test_id": "total_protein",
+        "raw_test": "Total Protein",
+        "raw_value": "7.3",
+        "raw_unit": "g/dL",
+        "canonical_val": 7.3
+      }
+    ]
+  },
+  "lakshmi_2025-12-10_thyroplus.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "2025-12-10",
+    "time": "08:35",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "2.8",
+        "raw_unit": "mIU/L",
+        "canonical_val": 2.8
+      },
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "FBS",
+        "raw_value": "5.3",
+        "raw_unit": "mmol/L",
+        "canonical_val": 95.4
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "0.82",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.82
+      },
+      {
+        "test_id": "blood_urea",
+        "raw_test": "Blood Urea",
+        "raw_value": "22",
+        "raw_unit": "mg/dL",
+        "canonical_val": 22.0
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "172",
+        "raw_unit": "mg/dL",
+        "canonical_val": 172.0
+      },
+      {
+        "test_id": "ldl_cholesterol",
+        "raw_test": "LDL Cholesterol",
+        "raw_value": "98",
+        "raw_unit": "mg/dL",
+        "canonical_val": 98.0
+      },
+      {
+        "test_id": "serum_albumin",
+        "raw_test": "Serum Albumin",
+        "raw_value": "4.2",
+        "raw_unit": "g/dL",
+        "canonical_val": 4.2
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "13.0",
+        "raw_unit": "g/dL",
+        "canonical_val": 13.0
+      }
+    ]
+  },
+  "lakshmi_2026-05-15_srisai.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "15-05-26",
+    "time": "08:25",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "2.5",
+        "raw_unit": "\u00b5IU/mL",
+        "canonical_val": 2.5
+      },
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Blood Sugar F",
+        "raw_value": "92",
+        "raw_unit": null,
+        "canonical_val": 92.0
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Creatinine",
+        "raw_value": "0.81",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.81
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Calcium",
+        "raw_value": "9.6",
+        "raw_unit": "mg/dL",
+        "canonical_val": 9.6
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hb",
+        "raw_value": "13.2",
+        "raw_unit": "g/dL",
+        "canonical_val": 13.2
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "168",
+        "raw_unit": "mg/dL",
+        "canonical_val": 168.0
+      },
+      {
+        "test_id": "hdl_cholesterol",
+        "raw_test": "HDL",
+        "raw_value": "54",
+        "raw_unit": "mg/dL",
+        "canonical_val": 54.0
+      },
+      {
+        "test_id": "esr",
+        "raw_test": "ESR",
+        "raw_value": "10",
+        "raw_unit": "mm/hr",
+        "canonical_val": 10.0
+      }
+    ]
+  },
+  "lakshmi_2026-09-10_sunrise.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "2026-09-10",
+    "time": "08:10",
+    "tests": [
+      {
+        "test_id": "tsh",
+        "raw_test": "TSH",
+        "raw_value": "2.1",
+        "raw_unit": "\u00b5IU/mL",
+        "canonical_val": 2.1
+      },
+      {
+        "test_id": "total_t3",
+        "raw_test": "Total T3",
+        "raw_value": "128",
+        "raw_unit": "ng/dL",
+        "canonical_val": 128.0
+      },
+      {
+        "test_id": "total_t4",
+        "raw_test": "Total T4",
+        "raw_value": "8.8",
+        "raw_unit": "\u00b5g/dL",
+        "canonical_val": 8.8
+      },
+      {
+        "test_id": "glucose_fasting",
+        "raw_test": "Glucose, Fasting",
+        "raw_value": "90",
+        "raw_unit": "mg/dL",
+        "canonical_val": 90.0
+      },
+      {
+        "test_id": "serum_creatinine",
+        "raw_test": "Serum Creatinine",
+        "raw_value": "0.79",
+        "raw_unit": "mg/dL",
+        "canonical_val": 0.79
+      },
+      {
+        "test_id": "serum_calcium",
+        "raw_test": "Serum Calcium",
+        "raw_value": "9.8",
+        "raw_unit": "mg/dL",
+        "canonical_val": 9.8
+      },
+      {
+        "test_id": "hemoglobin",
+        "raw_test": "Hemoglobin",
+        "raw_value": "13.4",
+        "raw_unit": "g/dL",
+        "canonical_val": 13.4
+      },
+      {
+        "test_id": "total_cholesterol",
+        "raw_test": "Total Cholesterol",
+        "raw_value": "165",
+        "raw_unit": "mg/dL",
+        "canonical_val": 165.0
+      }
+    ]
+  },
+  "ramesh_2024-10-01_rx.pdf": {
+    "patient": "Ramesh Kumar",
+    "date": "2024-10-01",
+    "kind": "prescription",
+    "medicines": [
+      {
+        "name": "Metformin",
+        "dose": "500 mg",
+        "drug_class": "Biguanide"
+      },
+      {
+        "name": "Atorvastatin",
+        "dose": "10 mg",
+        "drug_class": "Statin"
+      }
+    ]
+  },
+  "lakshmi_2024-05-01_rx.pdf": {
+    "patient": "Lakshmi Kumar",
+    "date": "2024-05-01",
+    "kind": "prescription",
+    "medicines": [
+      {
+        "name": "Thyronorm",
+        "dose": "25 mcg",
+        "drug_class": "Thyroid hormone"
+      },
+      {
+        "name": "Uprise D3",
+        "dose": "60,000 IU",
+        "drug_class": "Vitamin supplement"
+      }
+    ]
+  }
+}

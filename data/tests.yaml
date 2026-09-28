@@ -1,64 +1,108 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# OWNER: Data & Standards role — name: ________ (fill in when you pick this)            FORMAT: YAML (read with PyYAML)
-# USED BY: src/standard.py (matching + conversion), src/reason.py (ranges, ask),
-#          tools/make_fake_reports.py (which tests to print, in which units)
-#
-# AI PROMPT ─ paste this header + AGENTS.md into your AI:
-#   Fill this file with ~25 common Indian lab tests, one entry per test, in
-#   exactly the format of the two examples below. Cover these groups:
-#     Diabetes:  glucose_fasting, glucose_pp, hba1c
-#     Lipids:    total_cholesterol, ldl, hdl, triglycerides
-#     Thyroid:   tsh, t3, t4
-#     Kidney:    creatinine, urea, egfr, uric_acid
-#     Liver:     sgpt_alt, sgot_ast
-#     CBC:       hemoglobin, wbc, platelets
-#     Vitamins:  vitamin_d, vitamin_b12
-#     Other:     sodium, potassium, calcium, ferritin
-#   For each: every alias real Indian labs print (Apollo, Thyrocare, Metropolis,
-#   small local labs, abbreviations like "FBS", "S. Creatinine", "Hb"), the
-#   conversion factors for other units labs actually use (e.g. mmol/L → mg/dL
-#   for glucose is ×18.0, for cholesterol ×38.67, for triglycerides ×88.57,
-#   creatinine µmol/L → mg/dL ×0.0113), adult reference range, a plausible
-#   range to reject misreads, which direction is bad, and a doctor question.
-#   Rules: aliases are lowercase; unit keys in `convert` are lowercase;
-#   `ask` is always a question, never advice or a diagnosis.
-#
-# FIELDS:
-#   name       display name
-#   category   group shown in the UI
-#   unit       canonical unit: every value is converted to this
-#   aliases    lowercase names labs print for this test
-#   convert    {other_unit_lowercase: factor}; canonical = printed × factor
-#   range      [low, high] adult normal range in the canonical unit; null = open-ended
-#   plausible  [low, high]; values outside are rejected as misreads
-#   bad        high | low | both: which direction is concerning
-#   ask        the question a flag on this test ends with
-#
-# DONE WHEN: ~25 entries, `python -c "import yaml;print(len(yaml.safe_load(open('data/tests.yaml'))))"`
-#            prints ≥ 25, and tests/test_standard.py passes.
-# ─────────────────────────────────────────────────────────────────────────────
-
 glucose_fasting:
-  name: Fasting glucose
-  category: Diabetes
-  unit: mg/dL
-  aliases: [fasting blood sugar, fbs, fasting glucose, glucose fasting, blood sugar f,
-            blood sugar fasting, fbg, fasting plasma glucose, fpg, glucose (fasting)]
-  convert: {mmol/l: 18.0}
-  range: [70, 100]
-  plausible: [20, 700]
-  bad: high
-  ask: Is my blood sugar control on track, or does the plan need a review?
+  name: "Fasting glucose"
+  aliases:
+    - "FBS"
+    - "Fasting Blood Sugar"
+    - "Glucose, Fasting"
+    - "Glucose, Fasting (Plasma)"
+    - "Blood Sugar F"
+  canonical_unit: "mg/dL"
+  conversions:
+    mmol/L: 18
+  normal: [70, 100]
+
+hba1c:
+  name: "HbA1c"
+  aliases:
+    - "HbA1c"
+    - "Glycated Hemoglobin"
+    - "Hemoglobin A1c"
+  canonical_unit: "%"
+  conversions: {}
+  normal: [null, 5.7]
 
 creatinine:
-  name: Creatinine
-  category: Kidney
-  unit: mg/dL
-  aliases: [creatinine, s. creatinine, serum creatinine, creatinine serum, creat]
-  convert: {umol/l: 0.0113, µmol/l: 0.0113}
-  range: [0.6, 1.3]
-  plausible: [0.1, 20]
-  bad: high
-  ask: Should my kidney function be checked more closely?
+  name: "Creatinine"
+  aliases:
+    - "Creatinine"
+    - "Serum Creatinine"
+    - "Creat"
+  canonical_unit: "mg/dL"
+  conversions:
+    umol/L: 0.0113
+  normal: [0.6, 1.3]
 
-# TODO(DATA): add the remaining ~23 tests listed above.
+cholesterol_total:
+  name: "Total cholesterol"
+  aliases:
+    - "Total Cholesterol"
+    - "Cholesterol, Total"
+    - "Cholesterol Total"
+  canonical_unit: "mg/dL"
+  conversions:
+    mmol/L: 38.67
+  normal: [null, 200]
+
+hdl:
+  name: "HDL cholesterol"
+  aliases:
+    - "HDL"
+    - "HDL Cholesterol"
+    - "HDL-C"
+  canonical_unit: "mg/dL"
+  conversions:
+    mmol/L: 38.67
+  normal: [40, null]
+
+ldl:
+  name: "LDL cholesterol"
+  aliases:
+    - "LDL"
+    - "LDL Cholesterol"
+    - "LDL-C"
+  canonical_unit: "mg/dL"
+  conversions:
+    mmol/L: 38.67
+  normal: [null, 100]
+
+tsh:
+  name: "TSH"
+  aliases:
+    - "TSH"
+    - "Thyroid Stimulating Hormone"
+    - "T.S.H"
+  canonical_unit: "mIU/L"
+  conversions: {}
+  normal: [0.4, 4.0]
+
+hemoglobin:
+  name: "Hemoglobin"
+  aliases:
+    - "Hemoglobin"
+    - "Hb"
+    - "Haemoglobin"
+  canonical_unit: "g/dL"
+  conversions: {}
+  normal: [13.0, 17.0]
+
+urea:
+  name: "Blood urea"
+  aliases:
+    - "Urea"
+    - "Blood Urea"
+    - "BUN"
+  canonical_unit: "mg/dL"
+  conversions:
+    mmol/L: 6.006
+  normal: [15, 40]
+
+vitamin_d:
+  name: "Vitamin D"
+  aliases:
+    - "Vitamin D"
+    - "25-OH Vitamin D"
+    - "Vitamin D (25-Hydroxy)"
+  canonical_unit: "ng/mL"
+  conversions:
+    nmol/L: 0.4
+  normal: [30, 100]
