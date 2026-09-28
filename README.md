@@ -32,8 +32,8 @@ least want to upload to a cloud AI, which is why this runs fully on the user's m
   page it came from, so every number on screen links back to its source.
 - **Reasons across documents.** Trends per test, plus rules in `data/rules.yaml`
   that combine a medicine with later results (metformin × creatinine fires on the
-  demo data; thyroid medicine × TSH and others are written and fire as more tests
-  are added). Data-quality caveats too, e.g. a "fasting" sample collected at 11:40.
+  demo data; pairs like statin × liver enzymes are written and start firing once
+  those tests are added to `data/tests.yaml`). Data-quality caveats too, e.g. a "fasting" sample collected at 11:40.
 - **Writes a doctor summary.** Python picks the facts; the LLM only writes the
   sentences, and a guard rejects any sentence with a number that isn't in the facts
   or with diagnosis/dosing words (falls back to a template).
