@@ -68,6 +68,15 @@ def test_prescription_medicines(store):
     assert ("Metformin", "biguanide", "2024-10-05") in store.meds
 
 
+def test_prescription_saved_without_drug_class(store, monkeypatch):
+    def missing(name):
+        raise NotImplementedError
+    monkeypatch.setattr(ingest.reason, "drug_class", missing)
+    r = ingest.ingest(store, FIX / "ramesh_2024-10-05_prescription.pdf")
+    assert r["ok"], r["message"]
+    assert ("Metformin", None, "2024-10-05") in store.meds
+
+
 def test_same_person_across_reports(store):
     a = ingest.ingest(store, FIX / "ramesh_2024-03-11_sunrise.pdf")
     b = ingest.ingest(store, FIX / "ramesh_2024-09-20_thyroplus.pdf")   # printed in CAPS
