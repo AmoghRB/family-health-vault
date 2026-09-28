@@ -1,11 +1,13 @@
 import json
 import os
+import re
 import tempfile
 import urllib.request
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 MODEL = "qwen2.5:7b-instruct"
@@ -77,6 +79,25 @@ def people():
     return sample()["people"] if use_sample() else store().people()
 
 
+class NewPerson(BaseModel):
+    name: str
+
+
+NAME_RE = re.compile(r"^[A-Za-z][A-Za-z .'\-]{1,59}$")
+
+
+@app.post("/api/people", status_code=201)
+def add_person(body: NewPerson):
+    """Add a family member before their reports arrive. Reports match them by name later."""
+    name = " ".join(body.name.split())
+    if not NAME_RE.match(name):
+        raise HTTPException(status_code=422, detail="Use letters only, 2 to 60 characters.")
+    if use_sample():
+        raise HTTPException(status_code=400, detail="Demo mode: start the backend to add people.")
+    person_id = store().find_or_create_person(name)
+    return next(p for p in store().people() if p["id"] == person_id)
+
+
 @app.get("/api/timeline/{person_id}")
 def timeline(person_id: int):
     data = sample()["timelines"].get(str(person_id)) if use_sample() else _real_timeline(person_id)
@@ -91,6 +112,28 @@ def summary(person_id: int):
     if data is None:
         raise HTTPException(status_code=404, detail="Unknown person")
     return data
+
+
+class ChatRequest(BaseModel):
+    person_id: int
+    question: str
+    history: list[dict] = []
+
+
+@app.post("/api/chat")
+def chat(body: ChatRequest):
+    """Ask the vault about one person's records, answered by the local model (see src/chat.py)."""
+    if not body.question.strip():
+        raise HTTPException(status_code=422, detail="Ask a question first.")
+    if use_sample():
+        return {"answer": "Demo mode: start the backend to ask questions about real reports.",
+                "sources": [], "mode": "facts"}
+    from src import chat as chat_mod
+
+    result = chat_mod.answer(store(), body.person_id, body.question, body.history)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Unknown person")
+    return result
 
 
 @app.post("/api/upload")

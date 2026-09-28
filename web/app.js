@@ -2,7 +2,7 @@
 // Reads the shapes in src/contracts.py / docs/interfaces.md.
 // If the API is unreachable it falls back to web/sample.json (same shapes).
 
-const state = { mode: "api", people: [], personId: null, sample: null, charts: [] };
+const state = { mode: "api", people: [], personId: null, sample: null, charts: [], timeline: null, chats: {} };
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -20,6 +20,7 @@ async function init() {
   const started = Date.now();
   wireTabs();
   wireUpload();
+  wireChat();
   $("print-btn").addEventListener("click", () => window.print());
   await loadPeople();
   await loadStatus();
@@ -89,11 +90,7 @@ const initials = (name) =>
 
 function renderPeople() {
   const box = $("person-chips");
-  if (!state.people.length) {
-    box.innerHTML = '<p class="section-lead">No one yet. Family members appear here once you upload their reports.</p>';
-    return;
-  }
-  box.innerHTML = state.people
+  const chips = state.people
     .map(
       (p) => `
       <button class="person-chip" role="radio" data-id="${p.id}" aria-checked="${p.id === state.personId}">
@@ -102,9 +99,51 @@ function renderPeople() {
       </button>`
     )
     .join("");
-  box.querySelectorAll(".person-chip").forEach((chip) =>
+  box.innerHTML = chips + `
+    <button class="person-chip add-chip" id="add-person-btn" type="button">
+      <span class="avatar add" aria-hidden="true">+</span><span class="name">Add person</span>
+    </button>
+    <form class="add-form" id="add-form" hidden>
+      <label for="new-name" class="sr-only">Name</label>
+      <input id="new-name" name="name" placeholder="Full name, as printed on reports" autocomplete="off" required maxlength="60" />
+      <button class="btn btn-primary" type="submit">Add</button>
+      <button class="btn" type="button" id="add-cancel">Cancel</button>
+      <p class="form-error" id="add-error" role="alert"></p>
+    </form>`;
+  box.querySelectorAll(".person-chip[data-id]").forEach((chip) =>
     chip.addEventListener("click", () => loadPerson(Number(chip.dataset.id)))
   );
+  wireAddPerson();
+}
+
+function wireAddPerson() {
+  const btn = $("add-person-btn"), form = $("add-form"), input = $("new-name"), err = $("add-error");
+  const toggle = (open) => {
+    form.hidden = !open;
+    btn.hidden = open;
+    err.textContent = "";
+    if (open) input.focus();
+  };
+  btn.addEventListener("click", () => toggle(true));
+  $("add-cancel").addEventListener("click", () => toggle(false));
+  form.addEventListener("keydown", (e) => e.key === "Escape" && toggle(false));
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    err.textContent = "";
+    try {
+      const res = await fetch("/api/people", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: input.value }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : "Please enter a valid name.");
+      await loadPeople(body.id);
+      await loadPerson(body.id);
+    } catch (ex) {
+      err.textContent = ex.message;
+    }
+  });
 }
 
 async function loadStatus() {
@@ -140,9 +179,11 @@ async function loadPerson(id) {
     $("timeline-content").innerHTML = emptyHtml("Couldn't load this person's data", esc(err.message));
     return;
   }
+  state.timeline = timeline;
   renderGlance(timeline);
   renderTimeline(timeline);
   renderFlags(timeline.flags);
+  renderChat();
   loadSummary(id); // slower: the on-device model writes the intro, so don't block the rest on it
 }
 
@@ -186,8 +227,10 @@ function renderGlance(t) {
   $("glance").innerHTML = `
     <div class="stat"><p class="stat-value">${person ? person.reports : "–"}</p><p class="stat-label">reports in the vault</p></div>
     <div class="stat"><p class="stat-value">${t.series.length}</p><p class="stat-label">tests tracked over time</p></div>
-    <div class="stat ${attention ? "alert" : "calm"}"><p class="stat-value">${attention || "All clear"}</p>
-      <p class="stat-label">${attention ? `thing${attention === 1 ? "" : "s"} to ask the doctor` : "nothing flagged right now"}</p></div>`;
+    ${!t.series.length
+      ? `<div class="stat"><p class="stat-value">–</p><p class="stat-label">no reports yet: upload one to start</p></div>`
+      : `<div class="stat ${attention ? "alert" : "calm"}"><p class="stat-value">${attention || "All clear"}</p>
+      <p class="stat-label">${attention ? `thing${attention === 1 ? "" : "s"} to ask the doctor` : "nothing flagged right now"}</p></div>`}`;
   const badge = $("flag-count");
   badge.hidden = !attention;
   badge.textContent = attention;
@@ -424,4 +467,90 @@ async function handleUpload(files) {
   } catch (err) {
     rows.forEach((r) => setRow(r, false, `Upload failed: ${err.message}`));
   }
+}
+
+/* ---------- ask AI (local model, see src/chat.py) ---------- */
+
+const MODE_LABEL = {
+  llm: "Answered by the on-device AI",
+  facts: "Straight from your records",
+  refused: "Not something the vault answers",
+};
+
+function suggestions(t) {
+  const qs = [];
+  const flagged = t.flags.find((f) => f.level === "red") || t.flags[0];
+  const firstTest = flagged ? t.series.find((s) => flagged.title.toLowerCase().includes(s.test.toLowerCase().split(" ")[0])) : null;
+  const test = firstTest || t.series[0];
+  if (test) qs.push(`How has my ${test.test.toLowerCase()} changed over time?`);
+  qs.push("What should I ask the doctor at my next visit?");
+  qs.push("Is anything outside the normal range right now?");
+  qs.push("Which medicines are on record?");
+  return qs;
+}
+
+function renderChat() {
+  const person = state.people.find((p) => p.id === state.personId);
+  $("chat-person").textContent = person ? person.name : "this person";
+  const history = state.chats[state.personId] || [];
+  const thread = $("chat-thread");
+  thread.innerHTML = history.length
+    ? history.map(bubbleHtml).join("")
+    : `<div class="chat-empty">Ask anything about ${esc(person ? person.name.split(" ")[0] : "their")}'s reports. Try one of these:</div>`;
+  $("suggestions").innerHTML = (state.timeline ? suggestions(state.timeline) : [])
+    .map((q) => `<button class="suggestion" type="button">${esc(q)}</button>`)
+    .join("");
+  $("suggestions").querySelectorAll(".suggestion").forEach((b) => b.addEventListener("click", () => ask(b.textContent)));
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function bubbleHtml(m) {
+  if (m.role === "user") return `<div class="bubble user">${esc(m.text)}</div>`;
+  if (m.pending) {
+    return `<div class="bubble bot pending"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      Thinking on this laptop…</div>`;
+  }
+  const src = m.sources && m.sources.length
+    ? `<details class="sources"><summary>From ${m.sources.length} report${m.sources.length === 1 ? "" : "s"}</summary>
+        <div class="chips">${m.sources.map((f) => `<span class="chip">${esc(f)}</span>`).join("")}</div></details>`
+    : "";
+  return `<div class="bubble bot ${m.mode || ""}"><p>${esc(m.text)}</p>
+    <p class="bubble-meta">${icon(m.mode === "refused" ? "info" : m.mode === "llm" ? "spark" : "doc")}${MODE_LABEL[m.mode] || ""}</p>${src}</div>`;
+}
+
+function wireChat() {
+  $("chat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    ask($("chat-input").value);
+  });
+}
+
+async function ask(question) {
+  question = question.trim();
+  const id = state.personId;
+  if (!question || id == null) return;
+  const history = (state.chats[id] = state.chats[id] || []);
+  if (history.some((m) => m.pending)) return; // one question at a time
+  const earlier = history.filter((m) => !m.pending).map((m) => ({ role: m.role, text: m.text }));
+  history.push({ role: "user", text: question }, { role: "assistant", pending: true });
+  $("chat-input").value = "";
+  $("chat-send").disabled = true;
+  renderChat();
+  let reply;
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ person_id: id, question, history: earlier }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : `chat returned ${res.status}`);
+    reply = { role: "assistant", text: body.answer, sources: body.sources, mode: body.mode };
+  } catch (err) {
+    reply = { role: "assistant", text: `Couldn't get an answer: ${err.message}`, mode: "refused" };
+  }
+  history[history.length - 1] = reply;
+  $("chat-send").disabled = false;
+  if (state.personId === id) renderChat();
+  $("chat-input").focus();
 }

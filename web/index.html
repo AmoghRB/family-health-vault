@@ -32,6 +32,8 @@
     <symbol id="i-flat" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
     <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4m0 10v4M3 12h4m10 0h4M6.3 6.3l2.5 2.5m6.4 6.4 2.5 2.5m0-11.4-2.5 2.5m-6.4 6.4-2.5 2.5"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol>
   </svg>
 
@@ -63,6 +65,9 @@
       <button class="tab" role="tab" id="tab-upload" data-panel="upload" aria-controls="panel-upload" aria-selected="true">
         <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Upload
       </button>
+      <button class="tab tab-ai" role="tab" id="tab-ask" data-panel="ask" aria-controls="panel-ask" aria-selected="false" tabindex="-1">
+        <svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>Ask AI
+      </button>
       <button class="tab" role="tab" id="tab-flags" data-panel="flags" aria-controls="panel-flags" aria-selected="false" tabindex="-1">
         <svg class="icon" aria-hidden="true"><use href="#i-flag"/></svg>Flags<span class="tab-badge" id="flag-count" hidden></span>
       </button>
@@ -88,6 +93,28 @@
         <li><b>3</b><span><strong>Flag</strong> what to ask the doctor</span></li>
       </ol>
       <div class="upload-log" id="upload-log" aria-live="polite"></div>
+    </section>
+
+    <!-- Ask AI -->
+    <section class="panel" id="panel-ask" role="tabpanel" aria-labelledby="tab-ask">
+      <div class="card chat">
+        <div class="chat-head">
+          <span class="chat-badge"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg></span>
+          <div>
+            <h2 class="chat-title">Ask about <span id="chat-person">this person</span>'s reports</h2>
+            <p class="chat-sub">Answered by the AI running on this laptop, only from the uploaded reports. It won't diagnose or suggest doses.</p>
+          </div>
+        </div>
+        <div class="chat-thread" id="chat-thread" aria-live="polite"></div>
+        <div class="suggestions" id="suggestions" aria-label="Suggested questions"></div>
+        <form class="chat-form" id="chat-form">
+          <label for="chat-input" class="sr-only">Your question</label>
+          <input id="chat-input" placeholder="e.g. How has my HbA1c changed?" autocomplete="off" maxlength="400" />
+          <button class="btn btn-primary" type="submit" id="chat-send" aria-label="Send question">
+            <svg class="icon" aria-hidden="true"><use href="#i-send"/></svg>Ask
+          </button>
+        </form>
+      </div>
     </section>
 
     <!-- Flags -->

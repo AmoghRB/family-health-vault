@@ -34,6 +34,12 @@ least want to upload to a cloud AI, which is why this runs fully on the user's m
   that combine a medicine with later results (metformin × creatinine fires on the
   demo data; pairs like statin × liver enzymes are written and start firing once
   those tests are added to `data/tests.yaml`). Data-quality caveats too, e.g. a "fasting" sample collected at 11:40.
+- **Answers questions, locally ("Ask AI").** Ask about a person's own records ("how has my
+  creatinine changed?"). Python gathers that person's readings, medicines and flags; the local
+  model phrases the answer from those facts only and names the source reports. Dosing and
+  medicine-change questions are refused before the model sees them, and any answer containing
+  a number that isn't in the records is replaced by the plain facts. Works (from the records,
+  without the model) even when Ollama is off. See `src/chat.py`.
 - **Writes a doctor summary.** Python picks the facts; the LLM only writes the
   sentences, and a guard rejects any sentence with a number that isn't in the facts
   or with diagnosis/dosing words (falls back to a template).
@@ -46,7 +52,7 @@ least want to upload to a cloud AI, which is why this runs fully on the user's m
 
 | Check | Result |
 |---|---|
-| Test suite (`pytest -q`) | 50 passed |
+| Test suite (`pytest -q`) | 61 passed |
 | Extraction on 16 synthetic reports, 3 lab layouts + 2 prescriptions | **78/78** values correct (rules reader), **78/78** (local LLM), header fields 18/18 |
 | Extraction on separate hand-made fixtures | 22/22 |
 | Demo case (Ramesh) | Metformin × creatinine flag fires, plus glucose / HbA1c trends |
@@ -106,7 +112,7 @@ pip install -r requirements.txt
 # Local LLM (once): install Ollama from https://ollama.com, then
 ollama pull qwen2.5:7b-instruct     # or qwen2.5:3b-instruct on 8 GB RAM
 
-pytest -q                            # 50 tests
+pytest -q                            # 61 tests
 ./run.sh --samples                   # makes the 16 fake PDFs in samples/, starts the app
 ```
 
@@ -116,7 +122,8 @@ pytest -q                            # 50 tests
 
 Open http://127.0.0.1:8765 → **Upload** tab → drop all the PDFs from `samples/`
 (about 15 s each with Ollama on; instant without it, the rules reader takes over) →
-pick **Ramesh Kumar** → **Flags** / **Timeline** / **Doctor Summary**.
+pick **Ramesh Kumar** → **Ask AI** / **Flags** / **Timeline** / **Doctor summary**.
+New family members can be added with **Add person**; their reports match them by name.
 Uploads are stored in `vault_data/` (git-ignored); delete that folder to start over.
 
 **Your own reports:** digital PDFs only (the kind a lab emails, where you can select
