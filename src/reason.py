@@ -61,6 +61,18 @@ def _within_10pct(value: float, limit: float) -> bool:
     return abs(value - limit) / abs(limit) <= 0.10
 
 
+def _range_text(normal: list) -> str:
+    """[70, 100] -> '70–100', [None, 5.7] -> 'below 5.7', [40, None] -> 'above 40'."""
+    low, high = normal
+    if low is None and high is None:
+        return "not given"
+    if low is None:
+        return f"below {high}"
+    if high is None:
+        return f"above {low}"
+    return f"{low}–{high}"
+
+
 # ── public API ───────────────────────────────────────────────────────────────
 
 def drug_class(name: str) -> str | None:
@@ -323,7 +335,7 @@ def timeline(store, person_id: int) -> Timeline | None:
                 "title": f"{info.get('name', test_id)} is {status}",
                 "detail": f"{info.get('name', test_id)} "
                           f"{latest} {unit} "
-                          f"(normal: {normal[0]}–{normal[1]})",
+                          f"(normal: {_range_text(normal)})",
                 "ask_doctor": ask,
                 "sources": [latest_row["filename"]]
                            if latest_row.get("filename") else [],
