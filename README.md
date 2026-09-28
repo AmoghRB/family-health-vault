@@ -117,7 +117,7 @@ Uploads are stored in `vault_data/` (git-ignored); delete that folder to start o
 **Your own reports:** digital PDFs only (the kind a lab emails, where you can select
 the text). Photos or scans are refused, since there's no OCR yet. Only the 10 tests
 in `data/tests.yaml` are tracked; anything else on the report is skipped.
-If the page shows "Address already in use", the app is already running: just open the link.
+If the terminal says "Address already in use", the app is already running: just open the link.
 
 Check extraction accuracy: `python tools/accuracy.py --set samples --mode rules`
 (or `--mode llm`).
