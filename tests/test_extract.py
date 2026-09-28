@@ -1,8 +1,10 @@
-"""Tests for src/extract.py (rules path, no LLM needed).  OWNER: Extraction role — name: ________ (fill in when you pick this).
+"""Tests for src/extract.py (rules path, no LLM needed).  OWNER: Extraction (Person 2): Amogh R B.
 Run: pytest -q tests/test_extract.py
 """
 
-from src.extract import read_rules
+import pytest
+
+from src.extract import parse_date as ex_parse_date, read_rules
 
 LAB_PAGE = """SRI SAI CLINICAL LABORATORY
 Patient Name : Mr. RAMESH KUMAR        Age/Sex : 58/M
@@ -41,3 +43,95 @@ def test_rules_prescription_has_no_doses():
     assert r["kind"] == "prescription"
     names = [m["name"].lower() for m in r["medicines"]]
     assert names == ["metformin", "atorvastatin"]
+
+
+@pytest.mark.parametrize("s, want", [
+    ("Sample Date: 2024-03-11 Collected: 08:15", "2024-03-11"),  # ISO (fake reports)
+    ("Date: 11/03/2024", "2024-03-11"),                           # day-first
+    ("Reported 20 Sep 2024", "2024-09-20"),
+    ("14-08-26", "2026-08-14"),
+])
+def test_parse_date_formats(s, want):
+    assert ex_parse_date(s) == want
+
+
+# ── LLM path, with a fake model (no Ollama needed) ────────────────────────────
+from pathlib import Path  # noqa: E402
+
+from src import extract as ex  # noqa: E402
+
+FIX = Path(__file__).parent / "fixtures"
+GOOD = {"kind": "lab", "person": "RAMESH KUMAR", "date": "2026-08-14", "collected_time": "11:40",
+        "lab": "Sri Sai", "values": [{"test": "HbA1c", "value": 7.2, "unit": "%", "range": None,
+                                      "page": "1"}], "medicines": []}
+
+
+def _fake_llm(monkeypatch, replies):
+    calls = []
+    monkeypatch.setattr(ex.llm, "available", lambda refresh=False: True)
+    monkeypatch.setattr(ex.llm, "chat_json", lambda s, u: calls.append(u) or replies.pop(0))
+    return calls
+
+
+def test_llm_reply_normalised(monkeypatch):
+    _fake_llm(monkeypatch, [GOOD])
+    r = ex.read_llm(["some text"])
+    assert r["person"] == "Ramesh Kumar"
+    assert r["values"][0] == {"test": "HbA1c", "value": "7.2", "unit": "%", "range": None, "page": 1}
+
+
+def test_llm_retries_once_then_gives_up(monkeypatch):
+    calls = _fake_llm(monkeypatch, [{"kind": "??"}, None])
+    assert ex.read_llm(["x"]) is None
+    assert len(calls) == 2 and "previous reply was invalid" in calls[1]
+
+
+def test_llm_medicine_doses_stripped(monkeypatch):
+    _fake_llm(monkeypatch, [{**GOOD, "kind": "prescription", "values": [],
+                             "medicines": [{"name": "Metformin 500mg BD"}]}])
+    assert ex.read_llm(["x"])["medicines"] == [{"name": "Metformin"}]
+
+
+def test_auto_falls_back_to_rules_when_llm_skips_values(monkeypatch):
+    _fake_llm(monkeypatch, [GOOD])            # model found 1 value, rules find 6
+    r = ex.extract(FIX / "ramesh_2026-08-14_srisai.pdf", mode="auto")
+    assert len(r["values"]) == 6
+
+
+def test_auto_uses_rules_when_ollama_off(monkeypatch):
+    monkeypatch.setattr(ex.llm, "available", lambda refresh=False: False)
+    r = ex.extract(FIX / "ramesh_2024-03-11_sunrise.pdf")
+    assert len(r["values"]) == 10 and r["date"] == "2024-03-11"
+
+
+def test_llm_unit_inside_value_and_range_as_unit(monkeypatch):
+    # real qwen2.5 output on the Sri Sai layout, before clean-up
+    _fake_llm(monkeypatch, [{**GOOD, "person": "Mr. Ramesh Kumar (58Y/M)",
+                             "lab": "SRI SAI LAB · Main Road", "values": [
+        {"test": "HbA1c", "value": "7.2 %", "unit": None, "range": None, "page": 1},
+        {"test": "Urea", "value": "41", "unit": "(15-40)", "range": "(15-40)", "page": 1}]}])
+    r = ex.read_llm(["x"])
+    assert r["person"] == "Ramesh Kumar" and r["lab"] == "Sri Sai Lab"
+    assert r["values"][0] == {"test": "HbA1c", "value": "7.2", "unit": "%", "range": None, "page": 1}
+    assert r["values"][1] == {"test": "Urea", "value": "41", "unit": None, "range": "15-40", "page": 1}
+
+
+# ── llm.py: only ever talks to Ollama on this machine ────────────────────────
+from src import llm  # noqa: E402
+
+
+def test_llm_refuses_remote_ollama_url(monkeypatch):
+    monkeypatch.setattr(llm, "OLLAMA_URL", "http://example.com:11434")
+    monkeypatch.setattr(llm.urllib.request, "urlopen",
+                        lambda *a, **k: pytest.fail("request left the machine"))
+    assert llm.available(refresh=True) is False
+    with pytest.raises(RuntimeError, match="local"):
+        llm.chat("s", "u")
+    assert llm.chat_json("s", "u") is None
+    monkeypatch.setattr(llm, "_available", None)
+
+
+def test_llm_accepts_loopback_urls(monkeypatch):
+    for url in ("http://127.0.0.1:11434", "http://localhost:11434/", "http://[::1]:11434"):
+        monkeypatch.setattr(llm, "OLLAMA_URL", url)
+        assert llm._base().startswith("http://")

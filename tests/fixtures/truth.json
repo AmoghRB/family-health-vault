@@ -1,0 +1,205 @@
+{
+  "ramesh_2024-03-11_sunrise.pdf": {
+    "kind": "lab",
+    "person": "Ramesh Kumar",
+    "date": "2024-03-11",
+    "collected_time": "08:10",
+    "lab": "Sunrise Diagnostics",
+    "values": [
+      {
+        "test": "Fasting Blood Sugar",
+        "value": "112",
+        "unit": "mg/dL",
+        "range": "70 - 100",
+        "page": 1
+      },
+      {
+        "test": "HbA1c",
+        "value": "6.1",
+        "unit": "%",
+        "range": "< 5.7",
+        "page": 1
+      },
+      {
+        "test": "Total Cholesterol",
+        "value": "212",
+        "unit": "mg/dL",
+        "range": "< 200",
+        "page": 1
+      },
+      {
+        "test": "HDL Cholesterol",
+        "value": "42",
+        "unit": "mg/dL",
+        "range": "> 40",
+        "page": 1
+      },
+      {
+        "test": "LDL Cholesterol",
+        "value": "138",
+        "unit": "mg/dL",
+        "range": "< 100",
+        "page": 1
+      },
+      {
+        "test": "Triglycerides",
+        "value": "165",
+        "unit": "mg/dL",
+        "range": "< 150",
+        "page": 1
+      },
+      {
+        "test": "Serum Creatinine",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6 - 1.3",
+        "page": 2
+      },
+      {
+        "test": "Blood Urea",
+        "value": "28",
+        "unit": "mg/dL",
+        "range": "15 - 40",
+        "page": 2
+      },
+      {
+        "test": "TSH",
+        "value": "2.4",
+        "unit": "µIU/mL",
+        "range": "0.4 - 4.0",
+        "page": 2
+      },
+      {
+        "test": "Haemoglobin",
+        "value": "13.8",
+        "unit": "g/dL",
+        "range": "13 - 17",
+        "page": 2
+      }
+    ],
+    "medicines": []
+  },
+  "ramesh_2024-09-20_thyroplus.pdf": {
+    "kind": "lab",
+    "person": "Ramesh Kumar",
+    "date": "2024-09-20",
+    "collected_time": "07:45",
+    "lab": "ThyroPlus Labs Pvt. Ltd.",
+    "values": [
+      {
+        "test": "FBS",
+        "value": "6.9",
+        "unit": "mmol/L",
+        "range": "3.9-5.6",
+        "page": 1
+      },
+      {
+        "test": "GLYCOSYLATED HAEMOGLOBIN",
+        "value": "6.8",
+        "unit": "%",
+        "range": "4.0-5.6",
+        "page": 1
+      },
+      {
+        "test": "S. CREATININE",
+        "value": "97",
+        "unit": "umol/L",
+        "range": "53-115",
+        "page": 1
+      },
+      {
+        "test": "TSH ULTRASENSITIVE",
+        "value": "3.1",
+        "unit": "uIU/mL",
+        "range": "0.35-4.94",
+        "page": 1
+      },
+      {
+        "test": "VITAMIN D TOTAL",
+        "value": "18.5",
+        "unit": "ng/mL",
+        "range": "30-100",
+        "page": 1
+      },
+      {
+        "test": "VITAMIN B12",
+        "value": "310",
+        "unit": "pg/mL",
+        "range": "211-911",
+        "page": 1
+      }
+    ],
+    "medicines": []
+  },
+  "ramesh_2026-08-14_srisai.pdf": {
+    "kind": "lab",
+    "person": "Ramesh Kumar",
+    "date": "2026-08-14",
+    "collected_time": "11:40",
+    "lab": "Sri Sai Clinical Laboratory",
+    "values": [
+      {
+        "test": "Blood Sugar F",
+        "value": "131",
+        "unit": null,
+        "range": "70-100",
+        "page": 1
+      },
+      {
+        "test": "HbA1c",
+        "value": "7.2",
+        "unit": "%",
+        "range": null,
+        "page": 1
+      },
+      {
+        "test": "S. Creatinine",
+        "value": "1.3",
+        "unit": "mg/dL",
+        "range": "0.6 - 1.3",
+        "page": 1
+      },
+      {
+        "test": "Urea",
+        "value": "41",
+        "unit": null,
+        "range": "15-40",
+        "page": 1
+      },
+      {
+        "test": "Hb",
+        "value": "13.1",
+        "unit": "gm%",
+        "range": "13-17",
+        "page": 1
+      },
+      {
+        "test": "Platelet Count",
+        "value": "2,45,000",
+        "unit": "/cumm",
+        "range": "1,50,000-4,50,000",
+        "page": 1
+      }
+    ],
+    "medicines": []
+  },
+  "ramesh_2024-10-05_prescription.pdf": {
+    "kind": "prescription",
+    "person": "Ramesh Kumar",
+    "date": "2024-10-05",
+    "collected_time": null,
+    "lab": "Rao Clinic",
+    "values": [],
+    "medicines": [
+      {
+        "name": "Metformin"
+      },
+      {
+        "name": "Atorvastatin"
+      },
+      {
+        "name": "Pantoprazole"
+      }
+    ]
+  }
+}
