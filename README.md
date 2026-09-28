@@ -8,10 +8,11 @@ each test over time, and flags what is worth asking the doctor about, including
 patterns that only show up across documents (e.g. metformin on a prescription +
 rising creatinine on lab reports). Nothing leaves the laptop.
 
-> ⚠️ **Status: in progress.** Extraction (PDF reading, local-LLM reader, upload
-> pipeline) is built and tested; the other modules are still stubs with
-> instructions in their header. The owner builds each one (with AI help) by
-> following that header. See [CONTRIBUTING.md](CONTRIBUTING.md) before you write any code.
+> **Status: working end to end (28 Sep).** Upload PDFs → extraction (rules + local
+> LLM) → standard units → SQLite → trends and cross-document flags → timeline,
+> flag cards and doctor summary in the browser. On the 16 generated sample reports:
+> 78/78 values read (rules and LLM), metformin × creatinine flag fires for Ramesh.
+> See [CONTRIBUTING.md](CONTRIBUTING.md) before you write any code.
 
 ---
 
@@ -100,10 +101,19 @@ pip install -r requirements.txt
 # Local LLM (once): install Ollama from https://ollama.com, then
 ollama pull qwen2.5:7b-instruct     # or qwen2.5:3b-instruct on 8 GB RAM
 
-./run.sh                             # → http://127.0.0.1:8765
-pytest -q                            # tests (they fail until the stubs are built)
+pytest -q                            # 49 tests
+./run.sh --samples                   # makes the 16 fake PDFs in samples/, starts the app
 ```
 
+Open http://127.0.0.1:8765 → **Upload** tab → drop all the PDFs from `samples/`
+(about 15 s each with Ollama on; instant without it, the rules reader takes over) →
+pick **Ramesh Kumar** → **Flags** / **Timeline** / **Doctor Summary**.
+Uploads are stored in `vault_data/` (git-ignored); delete that folder to start over.
+
+Check extraction accuracy: `python tools/accuracy.py --set samples --mode rules`
+(or `--mode llm`).
+
+Demo data without uploading: `FHV_SAMPLE=1 ./run.sh` serves `web/sample.json`.
 Frontend only, no backend: `cd web && python -m http.server 8000` → open
 http://127.0.0.1:8000. `app.js` falls back to `sample.json`.
 
