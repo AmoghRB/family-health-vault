@@ -63,3 +63,24 @@ affects, then change **both files in the same commit**.
 If you only touched your own files, you won't get any. If you do get one:
 `git pull origin main` on your branch, open the file in VS Code, pick
 *Accept Current / Incoming / Both* in the conflict view, commit, push.
+
+
+## Who owns which files
+
+Each file has one owner; change someone else's file only through a PR they review.
+
+| Role | Name | Files |
+|---|---|---|
+| **Data & Standards** (Person 1) | Pankaj Kumar B S (@PunkK9) | `tools/make_fake_reports.py`, `data/tests.yaml`, `src/standard.py`, `src/store.py`, `tests/test_standard.py`, `tests/test_store.py` |
+| **Frontend, API & Demo** (Person 4) | Abhishek Chugh (@abhichugh2006-design) | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `src/api.py`, `tests/test_api.py`, `demo/` |
+| **Extraction** (Person 2) | Amogh R B (@AmoghRB) | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tools/make_test_pdfs.py`, `tests/fixtures/`, `tests/test_extract.py`, `tests/test_ingest.py` |
+| **Reasoning & Submission** (Person 3) | Aditya Jibrael (@Aditya-JIB3012) | `src/reason.py`, `src/summary.py`, `data/rules.yaml`, `data/medicines.yaml`, `prompts/summary.txt`, `tests/test_reason.py`, `README.md` |
+| **Shared** (change only after the group agrees) | everyone | `src/contracts.py`, `docs/interfaces.md`, `requirements.txt`, `AGENTS.md` |
+
+## Ground rules (these cost marks if ignored)
+
+- **Offline.** Nothing calls the internet at runtime. Test with Wi-Fi off.
+- **No diagnoses, no doses.** Every flag ends with a question for the doctor.
+- **Numbers come from Python, sentences from the LLM.** If the model computes a value, it's a bug.
+- **Synthetic reports only.** Never commit a real person's report.
+- **Everyone commits under their own name, several times a day.** Judges read the history.
