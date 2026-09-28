@@ -94,10 +94,11 @@ def summary(person_id: int):
 
 
 @app.post("/api/upload")
-async def upload(files: list[UploadFile] = File(...)):
+def upload(files: list[UploadFile] = File(...)):
+    # Plain def, not async: reading a PDF with the LLM takes ~15 s and must not freeze the other routes.
     results = []
     for f in files:
-        content = await f.read()
+        content = f.file.read()
         if use_sample():
             results.append(
                 {

@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -89,12 +90,23 @@ class Store:
         else:
             self.db_path = Path(":memory:")
 
-        self.conn = self._get_connection()
+        # FastAPI runs routes on several threads at once (the page loads timeline and summary
+        # together), and one shared connection breaks under that. So each thread gets its own
+        # connection to the file; ":memory:" keeps one, since a new one would be an empty DB.
+        self._local = threading.local()
+        self._shared = self._get_connection() if str(self.db_path) == ":memory:" else None
         self._init_db()
 
+    @property
+    def conn(self) -> sqlite3.Connection:
+        if self._shared is not None:
+            return self._shared
+        if getattr(self._local, "conn", None) is None:
+            self._local.conn = self._get_connection()
+        return self._local.conn
+
     def _get_connection(self) -> sqlite3.Connection:
-        # FastAPI runs routes on different threads; one shared connection must allow that.
-        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
+        conn = sqlite3.connect(str(self.db_path), check_same_thread=False, timeout=10)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
