@@ -66,6 +66,12 @@ def test_rules_bullet_lines_with_ref_range():
     assert r["collected_time"] == "08:30"
 
 
+def test_rules_test_name_starting_with_a_number():
+    r = read_rules(["Patient Name: Priya Kumar\nReport Date: 2025-08-12\n"
+                    "(cid:127) 25-OH Vitamin D : 55 nmol/L (Ref: 75-250)"])
+    assert [(v["test"], v["value"], v["unit"]) for v in r["values"]] == [("25-OH Vitamin D", "55", "nmol/L")]
+
+
 def test_rules_numbered_prescription():
     r = read_rules(["Dr. Meenakshi Sundaram, MD\nPatient: Lakshmi Kumar | Date: 2024-05-01\nRx\n"
                     "1. Thyronorm 25 mcg \u2014 1 tab daily morning\n"
