@@ -6,31 +6,60 @@ const state = { mode: "api", people: [], personId: null, sample: null, charts: [
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-const LEVEL_CLASS = { red: "severity-critical", amber: "severity-warning", green: "severity-info" };
+const icon = (name) => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const LEVELS = {
+  red: { label: "Needs attention", icon: "alert" },
+  amber: { label: "Worth watching", icon: "flag" },
+  green: { label: "For information", icon: "info" },
+};
+const SPLASH_MIN_MS = 1200;
 
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+  const started = Date.now();
   wireTabs();
   wireUpload();
   $("print-btn").addEventListener("click", () => window.print());
-  $("person-select").addEventListener("change", (e) => loadPerson(Number(e.target.value)));
   await loadPeople();
   await loadStatus();
-  if (state.personId != null) await loadPerson(state.personId);
-  else renderEmpty();
+  const first = state.personId != null ? loadPerson(state.personId) : (renderEmpty(), null);
+  await first; // resolves once flags + timeline are drawn; the summary keeps loading on its own
+  setTimeout(hideSplash, Math.max(0, SPLASH_MIN_MS - (Date.now() - started)));
 }
 
+function hideSplash() {
+  const splash = $("splash");
+  splash.classList.add("hide");
+  splash.setAttribute("aria-hidden", "true");
+  setTimeout(() => splash.remove(), 600);
+}
+
+/* ---------- tabs ---------- */
+
 function wireTabs() {
-  const tabs = document.querySelectorAll(".tab");
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      tabs.forEach((t) => t.setAttribute("aria-selected", "false"));
-      tab.setAttribute("aria-selected", "true");
-      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-      $(`panel-${tab.dataset.panel}`).classList.add("active");
+  const tabs = [...document.querySelectorAll(".tab")];
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => selectTab(tab.dataset.panel));
+    tab.addEventListener("keydown", (e) => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      const next = tabs[(i + step + tabs.length) % tabs.length];
+      selectTab(next.dataset.panel);
+      next.focus();
     });
   });
+}
+
+function selectTab(name) {
+  document.querySelectorAll(".tab").forEach((t) => {
+    const on = t.dataset.panel === name;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+  });
+  document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === `panel-${name}`));
+  // Charts drawn while their panel was hidden need a resize once visible.
+  if (name === "timeline") state.charts.forEach((c) => c.resize());
 }
 
 /* ---------- data ---------- */
@@ -52,101 +81,202 @@ async function loadPeople(keepId) {
   }
   const ids = state.people.map((p) => p.id);
   state.personId = ids.includes(keepId) ? keepId : (ids[0] ?? null);
-  $("person-select").innerHTML = state.people
-    .map((p) => `<option value="${p.id}">${esc(p.name)} (${p.reports} report${p.reports === 1 ? "" : "s"})</option>`)
+  renderPeople();
+}
+
+const initials = (name) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
+
+function renderPeople() {
+  const box = $("person-chips");
+  if (!state.people.length) {
+    box.innerHTML = '<p class="section-lead">No one yet. Family members appear here once you upload their reports.</p>';
+    return;
+  }
+  box.innerHTML = state.people
+    .map(
+      (p) => `
+      <button class="person-chip" role="radio" data-id="${p.id}" aria-checked="${p.id === state.personId}">
+        <span class="avatar" aria-hidden="true">${esc(initials(p.name))}</span>
+        <span class="name">${esc(p.name)}<span class="meta">${p.reports} report${p.reports === 1 ? "" : "s"}</span></span>
+      </button>`
+    )
     .join("");
-  if (state.personId != null) $("person-select").value = state.personId;
+  box.querySelectorAll(".person-chip").forEach((chip) =>
+    chip.addEventListener("click", () => loadPerson(Number(chip.dataset.id)))
+  );
 }
 
 async function loadStatus() {
-  let text, color, soft;
+  const pill = $("status-pill");
+  let text, cls = "";
   if (state.mode === "demo") {
-    text = "Demo data — backend not running";
-    color = "--warn";
-    soft = "--warn-soft";
+    text = "Demo data · backend not running";
+    cls = "warn";
   } else {
     try {
       const s = await api("/api/status");
-      text = s.llm ? `Running locally · ${s.model}` : "Running locally · LLM off (template summaries)";
-      color = s.llm ? "--accent" : "--warn";
-      soft = s.llm ? "--accent-soft" : "--warn-soft";
+      text = s.llm ? `Private · on-device AI (${s.model})` : "Private · rules reader (local AI off)";
+      if (!s.llm) cls = "warn";
     } catch (err) {
-      text = "API error";
-      color = "--critical";
-      soft = "--critical-soft";
+      text = "Can't reach the vault";
+      cls = "error";
     }
   }
   $("status-text").textContent = text;
-  const dot = document.querySelector(".status-dot");
-  dot.style.background = `var(${color})`;
-  dot.style.boxShadow = `0 0 0 3px var(${soft})`;
+  pill.className = `status-pill ${cls}`;
 }
 
 async function loadPerson(id) {
   state.personId = id;
-  let timeline, summary;
+  document.querySelectorAll(".person-chip").forEach((c) =>
+    c.setAttribute("aria-checked", String(Number(c.dataset.id) === id))
+  );
+  let timeline;
   try {
-    if (state.mode === "api") {
-      [timeline, summary] = await Promise.all([api(`/api/timeline/${id}`), api(`/api/summary/${id}`)]);
-    } else {
-      timeline = state.sample.timelines[id];
-      summary = state.sample.summaries[id];
-    }
+    timeline = state.mode === "api" ? await api(`/api/timeline/${id}`) : state.sample.timelines[id];
   } catch (err) {
     console.error(err);
-    $("timeline-content").innerHTML = `<div class="empty-state">Could not load data: ${esc(err.message)}</div>`;
+    $("timeline-content").innerHTML = emptyHtml("Couldn't load this person's data", esc(err.message));
     return;
   }
+  renderGlance(timeline);
   renderTimeline(timeline);
   renderFlags(timeline.flags);
-  renderSummary(summary);
+  loadSummary(id); // slower: the on-device model writes the intro, so don't block the rest on it
+}
+
+async function loadSummary(id) {
+  const box = $("summary-content");
+  box.innerHTML = `<div class="writing"><span class="spinner" aria-hidden="true"></span>Writing the summary with the on-device AI…</div>`;
+  try {
+    const summary = state.mode === "api" ? await api(`/api/summary/${id}`) : state.sample.summaries[id];
+    if (state.personId === id) renderSummary(summary); // ignore if the user switched person meanwhile
+  } catch (err) {
+    box.innerHTML = emptyHtml("Couldn't write the summary", esc(err.message));
+  }
+}
+
+/* ---------- empty states ---------- */
+
+const emptyHtml = (title, text, action = "") =>
+  `<div class="empty"><strong>${title}</strong>${text}${action}</div>`;
+
+const uploadAction = '<br><button class="btn btn-primary" data-go="upload">' + icon("upload") + "Upload a report</button>";
+
+function wireEmptyActions(root) {
+  root.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => selectTab(b.dataset.go)));
 }
 
 function renderEmpty() {
-  const msg = '<div class="empty-state">Upload a report to get started.</div>';
-  ["timeline-content", "flags-content", "summary-content"].forEach((id) => ($(id).innerHTML = msg));
+  $("glance").innerHTML = "";
+  $("flag-count").hidden = true;
+  const html = emptyHtml("Your vault is empty", "Upload a lab report or prescription to start a timeline.", uploadAction);
+  ["timeline-content", "flags-content", "summary-content"].forEach((id) => {
+    $(id).innerHTML = html;
+    wireEmptyActions($(id));
+  });
+}
+
+/* ---------- at a glance ---------- */
+
+function renderGlance(t) {
+  const person = state.people.find((p) => p.id === state.personId);
+  const attention = t.flags.filter((f) => f.level === "red" || f.level === "amber").length;
+  $("glance").innerHTML = `
+    <div class="stat"><p class="stat-value">${person ? person.reports : "–"}</p><p class="stat-label">reports in the vault</p></div>
+    <div class="stat"><p class="stat-value">${t.series.length}</p><p class="stat-label">tests tracked over time</p></div>
+    <div class="stat ${attention ? "alert" : "calm"}"><p class="stat-value">${attention || "All clear"}</p>
+      <p class="stat-label">${attention ? `thing${attention === 1 ? "" : "s"} to ask the doctor` : "nothing flagged right now"}</p></div>`;
+  const badge = $("flag-count");
+  badge.hidden = !attention;
+  badge.textContent = attention;
+  badge.setAttribute("aria-label", `${attention} flagged`);
 }
 
 /* ---------- helpers ---------- */
 
 const outOfRange = (v, [lo, hi]) => (lo != null && v < lo) || (hi != null && v > hi);
 const rangeText = ([lo, hi], unit) =>
-  lo == null ? `up to ${hi} ${unit}` : hi == null ? `${lo} ${unit} or more` : `${lo}–${hi} ${unit}`;
+  lo == null ? `below ${hi} ${unit}` : hi == null ? `above ${lo} ${unit}` : `${lo}–${hi} ${unit}`;
 const formatDate = (iso) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-const caveatHtml = (c) => `<div class="caveat">⚠ ${esc(c)}</div>`;
+const caveatHtml = (c) => `<div class="caveat">${icon("alert")}<span>${esc(c)}</span></div>`;
+const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+/* ---------- flags ---------- */
+
+function flagHtml(f, withCard = true) {
+  const lvl = LEVELS[f.level] || LEVELS.green;
+  const n = f.sources.length;
+  return `
+    <div class="${withCard ? "card " : ""}flag ${esc(f.level)}">
+      <span class="flag-icon">${icon(lvl.icon)}</span>
+      <span class="level">${lvl.label}</span>
+      <p class="flag-title">${esc(f.title)}</p>
+      <p class="flag-detail">${esc(f.detail)}</p>
+      <p class="ask"><strong>Ask your doctor:</strong> ${esc(f.ask_doctor)}</p>
+      ${n ? `<details class="sources"><summary>Based on ${n} report${n === 1 ? "" : "s"}</summary>
+        <div class="chips">${f.sources.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div></details>` : ""}
+    </div>`;
+}
+
+function renderFlags(flags) {
+  $("flags-content").innerHTML = flags.length
+    ? flags.map((f) => flagHtml(f)).join("")
+    : emptyHtml("Nothing flagged", "No trends or cross-report patterns need attention for this person right now.");
+}
 
 /* ---------- timeline ---------- */
+
+function trend(points) {
+  if (points.length < 2) return null;
+  const first = points[0].value, last = points[points.length - 1].value;
+  const change = (last - first) / Math.abs(first || 1);
+  if (Math.abs(change) < 0.03) return { icon: "flat", text: "steady" };
+  return change > 0 ? { icon: "up", text: "rising" } : { icon: "down", text: "falling" };
+}
 
 function renderTimeline(t) {
   const box = $("timeline-content");
   state.charts.forEach((c) => c.destroy());
   state.charts = [];
-  const caveats = t.caveats.map(caveatHtml).join("");
+  const caveats = t.caveats.length ? `<div class="caveats">${t.caveats.map(caveatHtml).join("")}</div>` : "";
   if (!t.series.length) {
-    box.innerHTML = caveats + '<div class="empty-state">No standardized values yet for this person.</div>';
+    box.innerHTML = caveats + emptyHtml("No values yet", "Upload a lab report to see this person's timeline.", uploadAction);
+    wireEmptyActions(box);
     return;
   }
   box.innerHTML = caveats;
   t.series.forEach((s, i) => {
+    const last = s.points[s.points.length - 1];
+    const out = outOfRange(last.value, s.normal);
+    const [lo] = s.normal;
+    const status = out ? (lo != null && last.value < lo ? "Below range" : "Above range") : "In range";
+    const tr = trend(s.points);
     const card = document.createElement("div");
-    card.className = "card series-card";
+    card.className = "card";
     card.innerHTML = `
       <div class="series-head">
-        <h3>${esc(s.test)}</h3>
-        <span class="series-range">normal: ${esc(rangeText(s.normal, s.unit))}</span>
+        <div><h3>${esc(s.test)}</h3><p class="range">Normal: ${esc(rangeText(s.normal, s.unit))}</p></div>
+        <div class="latest">
+          <p class="latest-value">${last.value} <small>${esc(s.unit)}</small></p>
+          <span class="pill ${out ? "out" : ""}">${status}${tr ? ` · ${icon(tr.icon)}${tr.text}` : ""}</span>
+        </div>
       </div>
-      <div class="series-canvas-wrap"><canvas id="chart-${i}"></canvas></div>
-      <table class="source-table">
-        <thead><tr><th>Date</th><th>Value</th><th>Source</th></tr></thead>
-        <tbody>${s.points
-          .map((p) => {
-            const [file, page] = p.source.split("#p");
-            const cls = outOfRange(p.value, s.normal) ? "out-of-range" : "";
-            return `<tr><td>${formatDate(p.date)}</td><td class="value ${cls}">${p.value} ${esc(s.unit)}</td><td>${esc(file)}${page ? " · p" + esc(page) : ""}</td></tr>`;
-          })
-          .join("")}</tbody>
-      </table>`;
+      <div class="chart-wrap"><canvas id="chart-${i}" role="img" aria-label="${esc(s.test)} over time, latest ${last.value} ${esc(s.unit)}"></canvas></div>
+      <details class="readings">
+        <summary>Show all ${s.points.length} readings and their sources</summary>
+        <table>
+          <thead><tr><th>Date</th><th>Value</th><th>Source</th></tr></thead>
+          <tbody>${s.points
+            .map((p) => {
+              const [file, page] = p.source.split("#p");
+              return `<tr><td>${formatDate(p.date)}</td><td class="value ${outOfRange(p.value, s.normal) ? "out" : ""}">${p.value} ${esc(s.unit)}</td><td>${esc(file)}${page ? " · page " + esc(page) : ""}</td></tr>`;
+            })
+            .join("")}</tbody>
+        </table>
+      </details>`;
     box.appendChild(card);
     drawChart(`chart-${i}`, s);
   });
@@ -154,6 +284,7 @@ function renderTimeline(t) {
 
 function drawChart(canvasId, s) {
   const [lo, hi] = s.normal;
+  const line = cssVar("--chart-line"), warn = cssVar("--critical");
   const band = {
     id: "band",
     beforeDatasetsDraw(chart) {
@@ -164,36 +295,38 @@ function drawChart(canvasId, s) {
       const bottom = Math.min(y.getPixelForValue(lo ?? y.min), a.bottom);
       const ctx = chart.ctx;
       ctx.save();
-      ctx.fillStyle = "rgba(79, 166, 160, 0.10)";
+      ctx.fillStyle = cssVar("--chart-band");
       ctx.fillRect(a.left, top, a.right - a.left, bottom - top);
       ctx.restore();
     },
   };
   const values = s.points.map((p) => p.value);
-  const axis = { ticks: { color: "#8fa0a8" }, grid: { color: "#2a343b" } };
+  const axis = { ticks: { color: cssVar("--chart-text") }, grid: { color: cssVar("--chart-grid") }, border: { display: false } };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   state.charts.push(
     new Chart($(canvasId).getContext("2d"), {
       type: "line",
       data: {
         labels: s.points.map((p) => formatDate(p.date)),
-        datasets: [
-          {
-            data: values,
-            borderColor: "#4fa6a0",
-            backgroundColor: "#4fa6a0",
-            borderWidth: 2,
-            tension: 0.25,
-            pointRadius: 5,
-            pointBackgroundColor: values.map((v) => (outOfRange(v, s.normal) ? "#d9a441" : "#4fa6a0")),
-          },
-        ],
+        datasets: [{
+          data: values,
+          borderColor: line,
+          borderWidth: 2.5,
+          tension: 0.3,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: values.map((v) => (outOfRange(v, s.normal) ? warn : line)),
+          pointBorderColor: cssVar("--surface"),
+          pointBorderWidth: 2,
+        }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: reduce ? false : { duration: 500 },
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { afterLabel: (c) => s.points[c.dataIndex].source } },
+          tooltip: { callbacks: { label: (c) => `${c.parsed.y} ${s.unit}`, afterLabel: (c) => s.points[c.dataIndex].source } },
         },
         scales: { x: axis, y: { ...axis, suggestedMin: lo ?? undefined, suggestedMax: hi ?? undefined } },
       },
@@ -202,32 +335,18 @@ function drawChart(canvasId, s) {
   );
 }
 
-/* ---------- flags and summary ---------- */
-
-const flagHtml = (f) => `
-  <div class="card flag-card ${LEVEL_CLASS[f.level] || ""}">
-    <p class="flag-title">${esc(f.title)}</p>
-    <p class="flag-message">${esc(f.detail)}</p>
-    <p class="flag-ask"><strong>Ask your doctor:</strong> ${esc(f.ask_doctor)}</p>
-    <div class="flag-sources">${f.sources.map((s) => `<span class="source-chip">${esc(s)}</span>`).join("")}</div>
-  </div>`;
-
-function renderFlags(flags) {
-  $("flags-content").innerHTML = flags.length
-    ? flags.map(flagHtml).join("")
-    : '<div class="empty-state">No flags for this person right now.</div>';
-}
+/* ---------- summary ---------- */
 
 function renderSummary(s) {
   $("summary-content").innerHTML = `
-    <h3 style="margin-top:0">${esc(s.person)} — visit summary</h3>
-    <p class="summary-meta">Generated ${esc(s.generated)} · from recorded reports only</p>
-    <p>${esc(s.intro)}</p>
-    ${s.medicines.length ? `<p class="section-title">Medicines on record</p><p>${s.medicines.map((m) => esc(m)).join(", ")}</p>` : ""}
-    ${s.top_trends.length ? `<p class="section-title">Top trends</p>${s.top_trends.map(flagHtml).join("")}` : ""}
-    ${s.questions.length ? `<p class="section-title">Questions to ask the doctor</p><ol class="summary-lines">${s.questions.map((q) => `<li>${esc(q)}</li>`).join("")}</ol>` : ""}
-    ${s.caveats.length ? `<p class="section-title">Data-quality notes</p>${s.caveats.map(caveatHtml).join("")}` : ""}
-    <p class="summary-disclaimer">This summarizes recorded values and flagged trends only. It is not a diagnosis and gives no dosing advice.</p>`;
+    <h2>${esc(s.person)}: visit summary</h2>
+    <p class="meta">Generated ${esc(s.generated)} · from recorded reports only</p>
+    <p class="intro">${esc(s.intro)}</p>
+    ${s.medicines.length ? `<h3>Medicines on record</h3><div class="meds">${s.medicines.map((m) => `<span class="med">${esc(m)}</span>`).join("")}</div>` : ""}
+    ${s.top_trends.length ? `<h3>Top trends</h3>${s.top_trends.map((f) => flagHtml(f, false)).join("")}` : ""}
+    ${s.questions.length ? `<h3>Questions to ask the doctor</h3><ol class="questions">${s.questions.map((q) => `<li>${esc(q)}</li>`).join("")}</ol>` : ""}
+    ${s.caveats.length ? `<h3>Data-quality notes</h3>${s.caveats.map(caveatHtml).join("")}` : ""}
+    <p class="disclaimer">This summarizes recorded values and flagged trends only. It is not a diagnosis and gives no dosing advice.</p>`;
 }
 
 /* ---------- upload ---------- */
@@ -235,9 +354,14 @@ function renderSummary(s) {
 function wireUpload() {
   const zone = $("dropzone");
   const input = $("file-input");
-  zone.addEventListener("click", () => input.click());
+  zone.addEventListener("click", (e) => {
+    if (e.target !== input) input.click(); // the input sits inside the zone; ignore its own bubbled click
+  });
   zone.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") input.click();
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      input.click();
+    }
   });
   zone.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -257,22 +381,27 @@ function wireUpload() {
 
 async function handleUpload(files) {
   const pdfs = files.filter((f) => f.name.toLowerCase().endsWith(".pdf"));
-  if (!pdfs.length) return;
   const log = $("upload-log");
-  if (log.querySelector(".empty-state")) log.innerHTML = "";
+  log.querySelector(".upload-done")?.remove();
+  if (!pdfs.length) {
+    log.insertAdjacentHTML("afterbegin", `<div class="upload-row warn"><span class="row-icon">${icon("alert")}</span><span class="msg">Only PDF files can be read.</span></div>`);
+    return;
+  }
   const rows = pdfs.map((f) => {
     const row = document.createElement("div");
     row.className = "upload-row";
-    row.innerHTML = `<span class="file-name">${esc(f.name)}</span><span>Processing…</span>`;
+    row.innerHTML = `<span class="row-icon"><span class="spinner" aria-hidden="true"></span></span>
+      <span class="file">${esc(f.name)}</span><span class="msg">Reading with the on-device AI…</span>`;
     log.prepend(row);
     return row;
   });
-  const setMsg = (row, cls, msg) => {
-    row.lastChild.className = cls;
-    row.lastChild.textContent = msg;
+  const setRow = (row, ok, msg) => {
+    row.className = `upload-row ${ok ? "ok" : "warn"}`;
+    row.querySelector(".row-icon").innerHTML = icon(ok ? "check" : "alert");
+    row.querySelector(".msg").textContent = msg;
   };
   if (state.mode === "demo") {
-    rows.forEach((r) => setMsg(r, "status-warn", "Demo mode — start the backend to process files."));
+    rows.forEach((r) => setRow(r, false, "Demo mode: start the backend to read files."));
     return;
   }
   try {
@@ -281,11 +410,18 @@ async function handleUpload(files) {
     const res = await fetch("/api/upload", { method: "POST", body: form });
     if (!res.ok) throw new Error(`upload returned ${res.status}`);
     const results = await res.json();
-    results.forEach((r, i) => rows[i] && setMsg(rows[i], r.ok ? "status-ok" : "status-warn", r.message));
+    results.forEach((r, i) => rows[i] && setRow(rows[i], r.ok, r.message));
     const saved = results.find((r) => r.ok && r.person_id != null);
     await loadPeople(saved ? saved.person_id : state.personId);
     if (state.personId != null) await loadPerson(state.personId);
+    const okCount = results.filter((r) => r.ok).length;
+    if (okCount) {
+      log.insertAdjacentHTML("beforeend", `
+        <div class="upload-done"><p>${okCount} report${okCount === 1 ? "" : "s"} added to the vault.</p>
+          <button class="btn btn-primary" data-go="flags">See flags ${icon("arrow")}</button></div>`);
+      wireEmptyActions(log);
+    }
   } catch (err) {
-    rows.forEach((r) => setMsg(r, "status-warn", `Upload failed — ${err.message}`));
+    rows.forEach((r) => setRow(r, false, `Upload failed: ${err.message}`));
   }
 }
