@@ -85,6 +85,9 @@ def ingest(store: Store, path: str | Path, filename: str | None = None) -> Uploa
             return _result(filename, False, f"Already in the vault (uploaded as {seen['filename']}).",
                            report_id=seen["id"], person_id=seen.get("person_id"))
 
+        if not any(page.strip() for page in extract.read_pdf(path)):
+            return _result(filename, False, "This PDF is a photo or scan with no text in it. "
+                           "Only digital PDFs (the kind labs email) can be read for now.")
         report = extract.extract(path)
         if not report["person"]:
             return _result(filename, False, "Couldn't find a patient name on this report.",

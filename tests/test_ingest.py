@@ -88,3 +88,15 @@ def test_never_raises(store, tmp_path):
     bad.write_text("hello")
     r = ingest.ingest(store, bad)
     assert not r["ok"]
+
+
+def test_scanned_pdf_explained(store, tmp_path):
+    # a phone photo saved as PDF has an image and no text layer
+    from reportlab.pdfgen import canvas
+
+    pdf = tmp_path / "photo.pdf"
+    c = canvas.Canvas(str(pdf))
+    c.rect(50, 50, 400, 600, fill=1)
+    c.save()
+    r = ingest.ingest(store, pdf)
+    assert not r["ok"] and "photo or scan" in r["message"]
