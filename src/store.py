@@ -1,6 +1,6 @@
-"""OWNER: Pankaj Kumar B S
-
-SQLite storage layer. Raw sqlite3, no ORM. One file: vault_data/vault.db.
+"""SQLite storage. One local file; every value keeps its source report and page.
+OWNER: Pankaj Kumar B S
+LANGUAGE / LIBS: Python 3.12, built-in `sqlite3` only. No ORM (no SQLAlchemy).
 """
 
 from __future__ import annotations
@@ -8,151 +8,199 @@ from __future__ import annotations
 import hashlib
 import sqlite3
 from pathlib import Path
+from typing import Any
 
-DB_PATH = Path(__file__).parent.parent / "vault_data" / "vault.db"
+try:
+    from src import VAULT_DIR
+except ImportError:
+    VAULT_DIR = Path(__file__).parent.parent / "vault_data"
 
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS people (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);
 
-def get_connection(path: Path | str = DB_PATH) -> sqlite3.Connection:
-    if path != ":memory:":
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id INTEGER NOT NULL REFERENCES people(id),
+    filename TEXT NOT NULL,
+    stored_path TEXT,
+    sha256 TEXT UNIQUE,
+    kind TEXT NOT NULL,
+    lab TEXT,
+    report_date TEXT,
+    collected_time TEXT,
+    uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 
+CREATE TABLE IF NOT EXISTS results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+    test_id TEXT NOT NULL,
+    value REAL NOT NULL,
+    unit TEXT NOT NULL,
+    raw_test TEXT,
+    raw_value TEXT,
+    raw_unit TEXT,
+    page INTEGER,
+    guessed INTEGER NOT NULL DEFAULT 0
+);
 
-def init_db(conn: sqlite3.Connection) -> None:
-    conn.executescript("""
-        CREATE TABLE IF NOT EXISTS people (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            person_id INTEGER NOT NULL REFERENCES people(id),
-            filename TEXT NOT NULL,
-            sha256 TEXT NOT NULL UNIQUE,
-            kind TEXT NOT NULL,
-            lab TEXT,
-            report_date TEXT,
-            collected_time TEXT,
-            uploaded_at TEXT NOT NULL DEFAULT (datetime('now'))
-        );
-
-        CREATE TABLE IF NOT EXISTS results (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            report_id INTEGER NOT NULL REFERENCES reports(id),
-            test_id TEXT NOT NULL,
-            value REAL NOT NULL,
-            unit TEXT NOT NULL,
-            raw_test TEXT NOT NULL,
-            raw_value TEXT NOT NULL,
-            raw_unit TEXT,
-            page INTEGER,
-            guessed INTEGER NOT NULL DEFAULT 0
-        );
-
-        CREATE TABLE IF NOT EXISTS medicines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            report_id INTEGER NOT NULL REFERENCES reports(id),
-            person_id INTEGER NOT NULL REFERENCES people(id),
-            name TEXT NOT NULL,
-            drug_class TEXT,
-            start_date TEXT
-        );
-    """)
-    conn.commit()
+CREATE TABLE IF NOT EXISTS medicines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES people(id),
+    name TEXT NOT NULL,
+    drug_class TEXT,
+    start_date TEXT
+);
+"""
 
 
-def hash_file(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()
+class Store:
+    def __init__(self, home: Path | str | None = None) -> None:
+        if home is None:
+            self.home = Path(VAULT_DIR)
+        elif str(home) == ":memory:":
+            self.home = Path(":memory:")
+        else:
+            self.home = Path(home)
 
+        if str(self.home) != ":memory:":
+            self.home.mkdir(parents=True, exist_ok=True)
+            self.db_path = self.home / "vault.db"
+        else:
+            self.db_path = Path(":memory:")
 
-def get_or_create_person(conn: sqlite3.Connection, name: str) -> int:
-    row = conn.execute("SELECT id FROM people WHERE name = ?", (name,)).fetchone()
-    if row:
-        return row["id"]
-    cur = conn.execute("INSERT INTO people (name) VALUES (?)", (name,))
-    conn.commit()
-    return cur.lastrowid
+        self.conn = self._get_connection()
+        self._init_db()
 
+    def _get_connection(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(str(self.db_path))
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
 
-def report_exists(conn: sqlite3.Connection, sha256: str) -> bool:
-    row = conn.execute("SELECT id FROM reports WHERE sha256 = ?", (sha256,)).fetchone()
-    return row is not None
+    def _init_db(self) -> None:
+        self.conn.executescript(SCHEMA)
+        self.conn.commit()
 
+    def close(self) -> None:
+        self.conn.close()
 
-def save_report(
-    conn: sqlite3.Connection,
-    person_id: int,
-    filename: str,
-    sha256: str,
-    kind: str,
-    lab: str | None,
-    report_date: str | None,
-    collected_time: str | None,
-) -> int:
-    cur = conn.execute(
-        """INSERT INTO reports (person_id, filename, sha256, kind, lab, report_date, collected_time)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (person_id, filename, sha256, kind, lab, report_date, collected_time),
-    )
-    conn.commit()
-    return cur.lastrowid
+    def people(self) -> list[dict[str, Any]]:
+        cur = self.conn.execute("SELECT id, name FROM people ORDER BY id ASC")
+        return [dict(row) for row in cur.fetchall()]
 
+    def person(self, person_id: int) -> dict[str, Any] | None:
+        cur = self.conn.execute("SELECT id, name FROM people WHERE id = ?", (person_id,))
+        row = cur.fetchone()
+        return dict(row) if row else None
 
-def save_result(conn: sqlite3.Connection, report_id: int, standard_value: dict) -> int:
-    raw = standard_value["raw"]
-    cur = conn.execute(
-        """INSERT INTO results (report_id, test_id, value, unit, raw_test, raw_value, raw_unit, page, guessed)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (
-            report_id,
-            standard_value["test_id"],
-            standard_value["value"],
-            standard_value["unit"],
-            raw["test"],
-            raw["value"],
-            raw.get("unit"),
-            raw.get("page"),
-            int(standard_value["guessed"]),
-        ),
-    )
-    conn.commit()
-    return cur.lastrowid
+    def find_or_create_person(self, name: str) -> int:
+        normalized = name.strip()
+        # Case-insensitive name lookup (e.g. RAMESH KUMAR == Ramesh Kumar)
+        cur = self.conn.execute(
+            "SELECT id FROM people WHERE LOWER(name) = LOWER(?)", (normalized,)
+        )
+        row = cur.fetchone()
+        if row:
+            return row["id"]
+        cur = self.conn.execute("INSERT INTO people (name) VALUES (?)", (normalized,))
+        self.conn.commit()
+        return cur.lastrowid
 
+    def report_by_hash(self, sha256: str) -> dict[str, Any] | None:
+        cur = self.conn.execute("SELECT * FROM reports WHERE sha256 = ?", (sha256,))
+        row = cur.fetchone()
+        return dict(row) if row else None
 
-def save_medicine(
-    conn: sqlite3.Connection,
-    report_id: int,
-    person_id: int,
-    name: str,
-    drug_class: str | None = None,
-    start_date: str | None = None,
-) -> int:
-    cur = conn.execute(
-        """INSERT INTO medicines (report_id, person_id, name, drug_class, start_date)
-           VALUES (?, ?, ?, ?, ?)""",
-        (report_id, person_id, name, drug_class, start_date),
-    )
-    conn.commit()
-    return cur.lastrowid
+    def add_report(
+        self,
+        person_id: int,
+        filename: str,
+        stored_path: str | None = None,
+        sha256: str | None = None,
+        kind: str = "lab",
+        lab: str | None = None,
+        date: str | None = None,
+        collected_time: str | None = None,
+    ) -> int:
+        cur = self.conn.execute(
+            """INSERT INTO reports (person_id, filename, stored_path, sha256, kind, lab, report_date, collected_time)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (person_id, filename, stored_path, sha256, kind, lab, date, collected_time),
+        )
+        self.conn.commit()
+        return cur.lastrowid
 
+    def add_result(self, report_id: int, standard_value: dict[str, Any]) -> int:
+        raw = standard_value.get("raw", {})
+        cur = self.conn.execute(
+            """INSERT INTO results (report_id, test_id, value, unit, raw_test, raw_value, raw_unit, page, guessed)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                report_id,
+                standard_value["test_id"],
+                standard_value["value"],
+                standard_value["unit"],
+                raw.get("test"),
+                str(raw.get("value", "")),
+                raw.get("unit"),
+                raw.get("page"),
+                int(standard_value.get("guessed", False)),
+            ),
+        )
+        self.conn.commit()
+        return cur.lastrowid
 
-def get_timeline_rows(conn: sqlite3.Connection, person_id: int, test_id: str) -> list[sqlite3.Row]:
-    """All results for one person + test, oldest first, with source info for traceability."""
-    return conn.execute(
-        """SELECT results.*, reports.filename, reports.report_date
-           FROM results
-           JOIN reports ON reports.id = results.report_id
-           WHERE reports.person_id = ? AND results.test_id = ?
-           ORDER BY reports.report_date ASC""",
-        (person_id, test_id),
-    ).fetchall()
+    def add_medicine(
+        self,
+        report_id: int,
+        person_id: int,
+        name: str,
+        drug_class: str | None = None,
+        start_date: str | None = None,
+    ) -> int:
+        cur = self.conn.execute(
+            """INSERT INTO medicines (report_id, person_id, name, drug_class, start_date)
+               VALUES (?, ?, ?, ?, ?)""",
+            (report_id, person_id, name, drug_class, start_date),
+        )
+        self.conn.commit()
+        return cur.lastrowid
 
+    def results(self, person_id: int) -> list[dict[str, Any]]:
+        cur = self.conn.execute(
+            """SELECT results.*, reports.filename, reports.report_date
+               FROM results
+               JOIN reports ON reports.id = results.report_id
+               WHERE reports.person_id = ?
+               ORDER BY reports.report_date ASC, results.id ASC""",
+            (person_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
 
-def get_person_reports(conn: sqlite3.Connection, person_id: int) -> list[sqlite3.Row]:
-    return conn.execute(
-        "SELECT * FROM reports WHERE person_id = ? ORDER BY report_date ASC", (person_id,)
-    ).fetchall()
+    def medicines(self, person_id: int) -> list[dict[str, Any]]:
+        cur = self.conn.execute(
+            """SELECT medicines.*, reports.filename, reports.report_date
+               FROM medicines
+               JOIN reports ON reports.id = medicines.report_id
+               WHERE medicines.person_id = ?
+               ORDER BY medicines.start_date ASC, medicines.id ASC""",
+            (person_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+    def reports(self, person_id: int) -> list[dict[str, Any]]:
+        cur = self.conn.execute(
+            "SELECT * FROM reports WHERE person_id = ? ORDER BY report_date ASC, id ASC",
+            (person_id,),
+        )
+        return [dict(row) for row in cur.fetchall()]
+
+    def delete_report(self, report_id: int) -> bool:
+        cur = self.conn.execute("DELETE FROM reports WHERE id = ?", (report_id,))
+        self.conn.commit()
+        return cur.rowcount > 0
