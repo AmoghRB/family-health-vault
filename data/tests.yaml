@@ -8,7 +8,7 @@ glucose_fasting:
     - "Blood Sugar F"
   canonical_unit: "mg/dL"
   conversions:
-    mmol/L: 18.0182
+    mmol/L: 18
   normal: [70, 100]
 
 hba1c:

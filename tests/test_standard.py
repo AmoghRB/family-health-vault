@@ -7,7 +7,7 @@ def test_unit_conversion_mmol_to_mgdl():
     result = standardize({"test": "FBS", "value": "6.6", "unit": "mmol/L", "range": None, "page": 1})
     assert result is not None
     assert result["test_id"] == "glucose_fasting"
-    assert result["value"] == 118.92
+    assert result["value"] == 118.8
     assert result["unit"] == "mg/dL"
     assert result["guessed"] is False
 
