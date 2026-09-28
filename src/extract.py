@@ -205,6 +205,8 @@ UNIT_RE = re.compile(r"^(?:[a-zA-Zµμ%][\w/%µμ.^*]*|/[\w.]+)$")
 RANGE_RE = re.compile(
     r"^(?:[<>≤≥]=?\s*\d[\d,]*(?:\.\d+)?"
     r"|\d[\d,]*(?:\.\d+)?\s*(?:-|–|to)\s*\d[\d,]*(?:\.\d+)?)$", re.I)
+BULLET_RE = re.compile(r"^(?:\(cid:\d+\)|[•●▪◦·*\-–])\s*")      # "(cid:127) FBS : 6.1 …"
+REF_RE = re.compile(r"^(?:ref(?:erence)?\.?(?:\s*range)?|normal(?:\s*range)?)\s*[:\-]?\s*", re.I)
 FLAG_WORDS = {"h", "l", "high", "low", "*", "**", "abnormal"}
 NOT_A_TEST = re.compile(
     r"\b(name|age|sex|gender|date|sample|collected|collection|reported|report|page|ref|"
@@ -214,6 +216,7 @@ NOT_A_TEST = re.compile(
 def parse_line(line: str) -> dict | None:
     """One text line → {test, value, unit, range} as printed, or None."""
     line = re.sub(r"\.{2,}", " : ", line).strip()
+    line = BULLET_RE.sub("", line)
     m = LINE_RE.match(line)
     if not m:
         return None
@@ -226,7 +229,7 @@ def parse_line(line: str) -> dict | None:
     if tokens and UNIT_RE.match(tokens[0]) and tokens[0].lower() not in FLAG_WORDS:
         unit, rest = tokens[0], " ".join(tokens[1:])
     rest = " ".join(t for t in rest.split() if t.lower() not in FLAG_WORDS)
-    rng = rest.strip().strip("()[]").strip() or None
+    rng = REF_RE.sub("", rest.strip().strip("()[]")).strip() or None
     if rng and not RANGE_RE.match(rng):
         return None          # leftover words → not a result line (e.g. "Review after 1 month …")
     return {"test": name, "value": m.group("value").replace(" ", ""), "unit": unit, "range": rng}
@@ -244,13 +247,18 @@ def parse_table_row(row: str) -> dict | None:
 
 MED_RE = re.compile(
     r"\b(?:tab|tablet|cap|capsule|syp|syrup|inj)\.?\s+([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*)*)", re.I)
+# "1. Metformin 500 mg — 1 tab …", "2) Uprise D3 60,000 IU …" (numbered Rx list)
+NUMBERED_MED_RE = re.compile(
+    r"^\s*\d{1,2}[.)]\s+([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z0-9\-]*)*)", re.M)
 DOSE_WORDS = {"od", "bd", "tds", "qid", "hs", "sos", "mg", "mcg", "ml", "x", "days", "before",
               "after", "food", "daily", "once", "twice"}
 
 
 def parse_medicines(text: str) -> list[dict]:
     meds = []
-    for m in MED_RE.finditer(text):
+    rx = re.search(r"^\s*(rx|℞)\b", text, re.I | re.M)
+    numbered = list(NUMBERED_MED_RE.finditer(text, rx.end())) if rx else []
+    for m in [*MED_RE.finditer(text), *numbered]:
         words = []
         for w in m.group(1).split():
             if w.lower() in DOSE_WORDS:

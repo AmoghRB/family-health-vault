@@ -55,6 +55,26 @@ def test_parse_date_formats(s, want):
     assert ex_parse_date(s) == want
 
 
+
+def test_rules_bullet_lines_with_ref_range():
+    r = read_rules(["THYROPLUS LABORATORIES INDIA\nPatient Name: Ramesh Kumar\n"
+                    "Report Date: 2024-07-15 | Collection Time: 08:30\n"
+                    "(cid:127) FBS : 6.1 mmol/L (Ref: 3.9-5.6)\n"
+                    "\u2022 Triglycerides : 165 mg/dL (Ref: < 150)"])
+    assert [(v["test"], v["value"], v["unit"], v["range"]) for v in r["values"]] == [
+        ("FBS", "6.1", "mmol/L", "3.9-5.6"), ("Triglycerides", "165", "mg/dL", "< 150")]
+    assert r["collected_time"] == "08:30"
+
+
+def test_rules_numbered_prescription():
+    r = read_rules(["Dr. Meenakshi Sundaram, MD\nPatient: Lakshmi Kumar | Date: 2024-05-01\nRx\n"
+                    "1. Thyronorm 25 mcg \u2014 1 tab daily morning\n"
+                    "2. Uprise D3 60,000 IU \u2014 1 capsule once weekly for 8 weeks"])
+    assert r["kind"] == "prescription"
+    assert [m["name"] for m in r["medicines"]] == ["Thyronorm", "Uprise D3"]
+    assert r["date"] == "2024-05-01" and r["person"] == "Lakshmi Kumar"
+
+
 # ── LLM path, with a fake model (no Ollama needed) ────────────────────────────
 from pathlib import Path  # noqa: E402
 

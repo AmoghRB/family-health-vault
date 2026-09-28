@@ -66,6 +66,14 @@ def _result(filename: str, ok: bool, message: str, **kw) -> UploadResult:
             "values_saved": kw.get("values_saved", 0), "message": message}
 
 
+def _drug_class(name: str) -> str | None:
+    """reason.drug_class, but a missing class never loses the prescription."""
+    try:
+        return reason.drug_class(name)
+    except Exception:
+        return None
+
+
 def ingest(store: Store, path: str | Path, filename: str | None = None) -> UploadResult:
     """One PDF → extracted → standardized → saved. Never raises."""
     path = Path(path)
@@ -101,11 +109,11 @@ def ingest(store: Store, path: str | Path, filename: str | None = None) -> Uploa
         else:
             for m in report["medicines"]:
                 store.add_medicine(report_id, person_id, m["name"],
-                                   reason.drug_class(m["name"]), report["date"])
+                                   _drug_class(m["name"]), report["date"])
             n = len(report["medicines"])
             what = f"{n} medicine{'s' if n != 1 else ''}"
         return _result(filename, True, f"Read {what} for {report['person']} ({_nice(report['date'])}).",
                        report_id=report_id, person_id=person_id, kind=report["kind"],
                        values_saved=saved)
     except Exception as e:  # never raise to the API
-        return _result(filename, False, f"Couldn't read this file: {e}")
+        return _result(filename, False, f"Couldn't read this file: {e or type(e).__name__}")
