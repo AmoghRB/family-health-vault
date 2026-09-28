@@ -1,65 +1,104 @@
-"""HTTP API + serves the web/ frontend. Run with ./run.sh (localhost only).
-
-OWNER: Frontend, API & Demo role — name: ________ (fill in when you pick this)
-LANGUAGE / LIBS: Python 3.12, FastAPI, Uvicorn, python-multipart.
-
-────────────────────────────────── AI PROMPT ──────────────────────────────────
-Paste this docstring + AGENTS.md + src/contracts.py + docs/interfaces.md into
-your AI, then say: "Implement the TODO routes in src/api.py exactly as described.
-Only edit this file."
-
-ROUTES (response shapes are in docs/interfaces.md, sections 3–5)
-  GET    /api/status                → {"ok": True, "llm": llm.available(), "model": llm.MODEL}
-  GET    /api/people                → store.people()
-  POST   /api/upload                → multipart field "files" (one or more PDFs).
-                                      Save each to a temp file, call
-                                      ingest.ingest(store, tmp, filename), return list
-                                      of UploadResult. Reject non-PDFs with ok=False.
-  GET    /api/timeline/{person_id}  → reason.timeline(store, person_id); 404 if None
-  GET    /api/summary/{person_id}   → summary.build(reason.timeline(...),
-                                      [m["name"] for m in store.medicines(id)]); 404 if None
-  DELETE /api/reports/{report_id}   → {"deleted": store.delete_report(id)}
-  /  and every other path            → static files from web/ (already done, bottom of file)
-
-WHY THIS IS IN THE FRONTEND ROLE
-  These routes only return the JSON web/app.js reads, so whoever builds the page
-  builds the routes too. Until the other modules are ready, a route may return the
-  matching part of web/sample.json so the page works end to end; swap in the real
-  call (reason.timeline, ingest.ingest, …) as each owner merges.
-
-RULES
-  - One module-level Store() shared by all routes.
-  - Bind to 127.0.0.1 only (run.sh does this). No CORS needed: the frontend is
-    served from the same origin.
-  - Keep routes thin: no business logic here, just call the modules.
-  - The static mount MUST stay the last line, or it hides the /api routes.
-
-DONE WHEN
-  pytest -q tests/test_api.py passes and ./run.sh shows the UI at http://127.0.0.1:8765
-───────────────────────────────────────────────────────────────────────────────
-"""
-
-from __future__ import annotations
+import json
+import os
+import urllib.request
+from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
 
-from src import ROOT, llm
-
-WEB = ROOT / "web"
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+MODEL = "qwen2.5:7b-instruct"
 
 app = FastAPI(title="Family Health Vault")
+_store = None
+
+
+def use_sample() -> bool:
+    """FHV_SAMPLE=1 (the default until the pipeline is wired) serves web/sample.json."""
+    return os.environ.get("FHV_SAMPLE", "1") == "1"
+
+
+def store():
+    global _store
+    if _store is None:
+        from src.store import Store  # imported lazily so sample mode never touches the database
+
+        _store = Store()
+    return _store
+
+
+def sample() -> dict:
+    return json.loads((WEB_DIR / "sample.json").read_text(encoding="utf-8"))
+
+
+def ollama_up() -> bool:
+    try:
+        urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=1).close()
+        return True
+    except OSError:
+        return False
+
+
+# --- Pipeline adapters: fill these three from the headers of ingest.py / reason.py / summary.py ---
+def _real_timeline(person_id: int) -> dict | None:
+    raise NotImplementedError("call reason.py (see its header)")
+
+
+def _real_summary(person_id: int) -> dict | None:
+    raise NotImplementedError("call summary.py (see its header)")
+
+
+def _real_ingest(filename: str, content: bytes) -> dict:
+    raise NotImplementedError("call ingest.py (see its header); return an UploadResult")
 
 
 @app.get("/api/status")
 def status():
-    # TODO(FRONTEND): use llm.available() once src/llm.py is implemented
-    return {"ok": True, "llm": False, "model": llm.MODEL}
+    return {"ok": True, "llm": ollama_up(), "model": MODEL}
 
 
-# TODO(FRONTEND): /api/people, /api/upload, /api/timeline/{person_id},
-#              /api/summary/{person_id}, DELETE /api/reports/{report_id}
+@app.get("/api/people")
+def people():
+    return sample()["people"] if use_sample() else store().people()
 
 
-# Serves web/index.html at "/" and web/* files. Keep this LAST.
-app.mount("/", StaticFiles(directory=WEB, html=True), name="web")
+@app.get("/api/timeline/{person_id}")
+def timeline(person_id: int):
+    data = sample()["timelines"].get(str(person_id)) if use_sample() else _real_timeline(person_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Unknown person")
+    return data
+
+
+@app.get("/api/summary/{person_id}")
+def summary(person_id: int):
+    data = sample()["summaries"].get(str(person_id)) if use_sample() else _real_summary(person_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Unknown person")
+    return data
+
+
+@app.post("/api/upload")
+async def upload(files: list[UploadFile] = File(...)):
+    results = []
+    for f in files:
+        content = await f.read()
+        if use_sample():
+            results.append(
+                {
+                    "filename": f.filename,
+                    "ok": False,
+                    "report_id": None,
+                    "person_id": None,
+                    "kind": None,
+                    "values_saved": 0,
+                    "message": "Demo mode: file not processed.",
+                }
+            )
+        else:
+            results.append(_real_ingest(f.filename, content))
+    return results
+
+
+# Must be mounted last: catch-all for the frontend files.
+app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
