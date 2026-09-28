@@ -295,7 +295,7 @@ def timeline(store, person_id: int) -> Timeline | None:
                 level = "red" if out_of_range else "amber"
                 months = int(t["years"] * 12)
                 detail_str = (f"{info.get('name', test_id)} "
-                              f"{pts[0]['value']} → {pts[-1]['value']}{unit} "
+                              f"{pts[0]['value']} → {pts[-1]['value']} {unit} "
                               f"over {months} months")
                 ask = info.get("ask", f"Should {info.get('name', test_id)} "
                                "be discussed at the next visit?")
@@ -303,7 +303,7 @@ def timeline(store, person_id: int) -> Timeline | None:
                 flags.append({
                     "level": level,
                     "title": f"{info.get('name', test_id)} trending "
-                             f"{t['direction']}",
+                             f"{'up' if t['direction'] == 'rising' else 'down'}",
                     "detail": detail_str,
                     "ask_doctor": ask,
                     "sources": list({r["filename"] for r in test_rows
