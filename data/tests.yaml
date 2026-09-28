@@ -78,7 +78,9 @@ tsh:
     - "Thyroid Stimulating Hormone"
     - "T.S.H"
   canonical_unit: "mIU/L"
-  conversions: {}
+  conversions:
+    µIU/mL: 1
+    uIU/mL: 1
   normal: [0.4, 4.0]
 
 hemoglobin:

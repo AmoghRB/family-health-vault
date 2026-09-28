@@ -84,10 +84,27 @@ def score_printed(truth: dict, report: dict) -> tuple[int, int, int, int, list[s
     return ok, wrong, len(missed), len(extra), notes
 
 
+def _expected(truth: dict) -> dict:
+    """make_fake_reports.py format: key each printed test by its tests.yaml id.
+
+    Its own test_ids ("serum_creatinine") differ from tests.yaml ("creatinine"), so the
+    printed name is matched the same way standard.py does. Tests tests.yaml doesn't
+    cover yet (ESR, TSH panel extras…) are left out: the app can't store them anyway.
+    """
+    from src.standard import _find_test_id
+
+    exp = {}
+    for t in truth.get("tests", []):
+        test_id = _find_test_id(t["raw_test"])
+        if test_id:
+            exp[test_id] = t["canonical_val"]
+    return exp
+
+
 def score_canonical(truth: dict, report: dict) -> tuple[int, int, int, int, list[str]]:
     """Samples: standardize, then compare canonical values by test_id."""
     from src.standard import standardize
-    exp = truth["values"]
+    exp = truth.get("values") or _expected(truth)
     got = {}
     for raw in report["values"]:
         v = standardize(raw)
@@ -103,6 +120,12 @@ def score_canonical(truth: dict, report: dict) -> tuple[int, int, int, int, list
 
 
 def header_ok(truth: dict, report: dict) -> list[str]:
+    # make_fake_reports.py writes "patient"/"time"; the extractor says "person"/"collected_time"
+    rename = {"patient": "person", "time": "collected_time"}
+    truth = {rename.get(k, k): v for k, v in truth.items()}
+    d = str(truth.get("date") or "")
+    if len(d) == 8 and d[2] == d[5] == "-":  # "20-01-25" (DD-MM-YY, as printed) → ISO
+        truth["date"] = f"20{d[6:]}-{d[3:5]}-{d[:2]}"
     bad = []
     for k in HEADER:
         if k in truth and str(report.get(k) or "").lower() != str(truth[k] or "").lower():
