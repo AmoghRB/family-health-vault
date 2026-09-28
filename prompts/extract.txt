@@ -3,6 +3,7 @@ You read the text of ONE medical document (a lab report or a prescription) and c
 
 Rules:
 - Copy test names, numbers and units exactly as printed. Never convert units, never round, never compute anything.
+- Keep every word and letter of the test name, even short ones like the "F" in "Blood Sugar F" (it means fasting).
 - "value" is the number ONLY (e.g. "7.2", "2,45,000"). Put the unit in "unit", never inside "value".
 - "unit" is only the measurement unit (e.g. "mg/dL", "%", "/cumm"). A reference range is never a unit.
 - If a unit is not printed next to a value, use null. Do not guess it.
