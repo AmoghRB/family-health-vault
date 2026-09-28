@@ -107,7 +107,11 @@ class Store:
         self.conn.close()
 
     def people(self) -> list[dict[str, Any]]:
-        cur = self.conn.execute("SELECT id, name FROM people ORDER BY id ASC")
+        cur = self.conn.execute(
+            """SELECT p.id, p.name, COUNT(r.id) AS reports
+               FROM people p LEFT JOIN reports r ON r.person_id = p.id
+               GROUP BY p.id ORDER BY p.id ASC"""
+        )
         return [dict(row) for row in cur.fetchall()]
 
     def person(self, person_id: int) -> dict[str, Any] | None:
