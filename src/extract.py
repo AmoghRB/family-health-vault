@@ -198,7 +198,7 @@ def parse_person(text: str) -> str | None:
 
 # A value line: "<name> [: or ....] <value> [unit] [range]"
 LINE_RE = re.compile(
-    r"^(?P<name>[A-Za-z][A-Za-z0-9 .()/%,'&+\-]*?)\s*:?\s+"
+    r"^(?P<name>(?:\d+-)?[A-Za-z][A-Za-z0-9 .()/%,'&+\-]*?)\s*:?\s+"     # "25-OH Vitamin D" may start with a digit
     r"(?P<value>[<>]?\s?\d[\d,]*(?:\.\d+)?)(?![\d/:\-])\s*(?P<rest>.*)$"
 )
 UNIT_RE = re.compile(r"^(?:[a-zA-Zµμ%][\w/%µμ.^*]*|/[\w.]+)$")
