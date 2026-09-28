@@ -346,7 +346,8 @@ def _check(out: dict) -> tuple[ExtractedReport | None, str | None]:
             value, unit = m.group(1), unit or m.group(2)
         if unit and rng and unit.strip("()[] ") == rng:
             unit = None                         # range copied into the unit slot
-        values.append({"test": str(v["test"]).strip(), "value": value.replace(" ", ""),
+        test = BULLET_RE.sub("", str(v["test"]).strip())   # model copies "(cid:127) TSH" as printed
+        values.append({"test": test, "value": value.replace(" ", ""),
                        "unit": unit, "range": rng, "page": page})
     meds = []
     for m in out.get("medicines") or []:

@@ -93,7 +93,8 @@ class Store:
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(str(self.db_path))
+        # FastAPI runs routes on different threads; one shared connection must allow that.
+        conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
@@ -106,7 +107,11 @@ class Store:
         self.conn.close()
 
     def people(self) -> list[dict[str, Any]]:
-        cur = self.conn.execute("SELECT id, name FROM people ORDER BY id ASC")
+        cur = self.conn.execute(
+            """SELECT p.id, p.name, COUNT(r.id) AS reports
+               FROM people p LEFT JOIN reports r ON r.person_id = p.id
+               GROUP BY p.id ORDER BY p.id ASC"""
+        )
         return [dict(row) for row in cur.fetchall()]
 
     def person(self, person_id: int) -> dict[str, Any] | None:

@@ -136,6 +136,13 @@ def test_llm_unit_inside_value_and_range_as_unit(monkeypatch):
     assert r["values"][1] == {"test": "Urea", "value": "41", "unit": None, "range": "15-40", "page": 1}
 
 
+def test_llm_bullet_glyph_stripped_from_test_name(monkeypatch):
+    # real qwen2.5 output on the ThyroPlus layout: the PDF bullet comes through as "(cid:127)"
+    _fake_llm(monkeypatch, [{**GOOD, "values": [
+        {"test": "(cid:127) TSH", "value": "5.2", "unit": "mIU/L", "range": "0.4-4.0", "page": 1}]}])
+    assert ex.read_llm(["x"])["values"][0]["test"] == "TSH"
+
+
 # ── llm.py: only ever talks to Ollama on this machine ────────────────────────
 from src import llm  # noqa: E402
 

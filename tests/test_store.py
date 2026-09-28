@@ -22,6 +22,7 @@ def test_roundtrip(tmp_path):
     assert rows[0]["report_date"] == "2025-01-01"
     assert rows[0]["filename"] == "a.pdf"
     assert s.report_by_hash("abc")["id"] == rid
+    assert s.people() == [{"id": pid, "name": "Ramesh Kumar", "reports": 1}]
 
 
 def test_delete_cascades(tmp_path):
