@@ -31,3 +31,35 @@ def test_delete_cascades(tmp_path):
     s.add_result(rid, value())
     assert s.delete_report(rid) is True
     assert s.results(pid) == []
+
+def test_doctor_questions_crud():
+    store = Store(home=":memory:")
+    pid = store.find_or_create_person("Ramesh Kumar")
+
+    qid = store.add_question(pid, "Should Dad take a kidney test with Metformin?")
+    questions = store.list_questions(pid)
+    assert len(questions) == 1
+    assert questions[0]["question"] == "Should Dad take a kidney test with Metformin?"
+
+    assert store.delete_question(qid) is True
+    assert len(store.list_questions(pid)) == 0
+
+
+def test_saved_summaries_history():
+    store = Store(home=":memory:")
+    pid = store.find_or_create_person("Ramesh Kumar")
+
+    summary_data = {
+        "person": "Ramesh Kumar",
+        "generated": "2026-09-28",
+        "top_trends": [{"title": "HbA1c rising"}],
+        "questions": ["Is diabetes under control?"]
+    }
+
+    sid = store.save_summary(pid, summary_data)
+    summaries = store.list_summaries(pid)
+    assert len(summaries) == 1
+
+    loaded = store.get_summary(sid)
+    assert loaded["person"] == "Ramesh Kumar"
+    assert loaded["generated"] == "2026-09-28"

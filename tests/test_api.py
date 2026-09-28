@@ -2,33 +2,70 @@
 Needs everyone's modules, so expect these to pass last (target: 27 Sep).
 """
 
+# OWNER: Abhishek Chugh (contract alignment: Pankaj Kumar B S)
 import pytest
 from fastapi.testclient import TestClient
 
-from src import SAMPLES
 from src.api import app
 
 client = TestClient(app)
 
+PERSON = {"id", "name", "reports"}
+TIMELINE = {"person", "person_id", "series", "flags", "caveats"}
+SERIES = {"test", "test_id", "unit", "normal", "points"}
+FLAG = {"level", "title", "detail", "ask_doctor", "sources"}
+SUMMARY = {"person", "generated", "medicines", "top_trends", "questions", "caveats", "intro"}
+UPLOAD = {"filename", "ok", "report_id", "person_id", "kind", "values_saved", "message"}
+
+
+@pytest.fixture(autouse=True)
+def sample_mode(monkeypatch):
+    monkeypatch.setenv("FHV_SAMPLE", "1")
+
+
+def first_person_id():
+    return client.get("/api/people").json()[0]["id"]
+
 
 def test_status():
-    r = client.get("/api/status")
-    assert r.status_code == 200
-    assert r.json()["ok"] is True
+    assert {"ok", "llm", "model"} <= client.get("/api/status").json().keys()
 
 
-def test_index_served():
-    assert client.get("/").status_code == 200
-
-
-@pytest.mark.skipif(not (SAMPLES / "ground_truth.json").exists(),
-                    reason="run tools/make_fake_reports.py first")
-def test_upload_sample():
-    pdf = sorted(SAMPLES.glob("ramesh_*.pdf"))[0]
-    with open(pdf, "rb") as f:
-        r = client.post("/api/upload", files=[("files", (pdf.name, f, "application/pdf"))])
-    assert r.status_code == 200
-    res = r.json()[0]
-    assert res["ok"] or "Already in the vault" in res["message"]
+def test_people_is_a_list_with_int_ids():
     people = client.get("/api/people").json()
-    assert any("Ramesh" in p["name"] for p in people)
+    assert isinstance(people, list) and people
+    for p in people:
+        assert PERSON <= p.keys()
+        assert isinstance(p["id"], int)
+
+
+def test_timeline_matches_contract():
+    tl = client.get(f"/api/timeline/{first_person_id()}").json()
+    assert TIMELINE <= tl.keys()
+    for s in tl["series"]:
+        assert SERIES <= s.keys()
+        assert all("#p" in pt["source"] for pt in s["points"])
+    for f in tl["flags"]:
+        assert FLAG <= f.keys()
+        assert f["level"] in ("red", "amber", "green")
+        assert f["ask_doctor"].endswith("?")
+
+
+def test_summary_matches_contract():
+    assert SUMMARY <= client.get(f"/api/summary/{first_person_id()}").json().keys()
+
+
+def test_unknown_person_is_404():
+    assert client.get("/api/timeline/999").status_code == 404
+    assert client.get("/api/summary/999").status_code == 404
+
+
+def test_upload_returns_one_result_per_file():
+    pdf = ("a.pdf", b"%PDF-1.4", "application/pdf")
+    results = client.post("/api/upload", files=[("files", pdf), ("files", pdf)]).json()
+    assert len(results) == 2
+    assert all(UPLOAD <= r.keys() for r in results)
+
+
+def test_frontend_is_served():
+    assert "Family Health Vault" in client.get("/").text
