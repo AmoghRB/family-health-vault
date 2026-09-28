@@ -1,36 +1,57 @@
 # Family Health Vault
 
-**Team Ghost Kernel · ASYNC'26 · Track 1 (Sovereign AI)**
+**Team Ghost Kernel · ASYNC'26 · Track 1: Sovereign AI**
 
-An offline "second brain" for a family's lab reports and prescriptions. Upload
-PDFs; the vault reads them, converts every value to one standard unit, tracks
-each test over time, and flags what is worth asking the doctor about, including
-patterns that only show up across documents (e.g. metformin on a prescription +
-rising creatinine on lab reports). Nothing leaves the laptop.
+An offline "second brain" for a family's lab reports and prescriptions. Upload the
+PDFs; the vault reads them with a **local** model, converts every value to one
+standard unit, tracks each test over the years, and flags what is worth asking the
+doctor about, including patterns that only show up **across documents** (metformin
+on a prescription + creatinine rising on later lab reports). Nothing leaves the laptop.
 
-> **Status: working end to end (28 Sep).** Upload PDFs → extraction (rules + local
-> LLM) → standard units → SQLite → trends and cross-document flags → timeline,
-> flag cards and doctor summary in the browser. On the 16 generated sample reports:
-> 78/78 values read (rules and LLM), metformin × creatinine flag fires for Ramesh.
-> See [CONTRIBUTING.md](CONTRIBUTING.md) before you write any code.
+> **Status (28 Sep): working prototype, end to end.** Upload → extraction → standard
+> units → SQLite → trends and cross-document flags → timeline, flag cards and a
+> one-page doctor summary in the browser.
 
----
+## Why
 
-## Tech stack (fixed, don't add to it without telling the group)
+Families keep years of lab reports from different labs, each with its own layout,
+test names and units ("Blood Sugar F" in mmol/L at one lab, "Glucose, Fasting" in
+mg/dL at another). Nobody lines them up, so slow trends and interactions between a
+prescription and later results go unnoticed. Health records are also the data people
+least want to upload to a cloud AI, which is why this runs fully on the user's machine
+(the Sovereign AI track).
 
-| Layer | Use | Notes |
-|---|---|---|
-| Language | **Python 3.12** | Backend, tools, tests |
-| API | **FastAPI** + **Uvicorn** | Serves the API *and* the `web/` folder |
-| PDF reading | **pdfplumber** | Text + tables from digital PDFs |
-| Local LLM | **Ollama**, model `qwen2.5:7b-instruct` (`qwen2.5:3b-instruct` on smaller laptops) | Called over `http://127.0.0.1:11434` with Python's `urllib`, no SDK |
-| Database | **SQLite** via Python's built-in `sqlite3` | One file in `vault_data/`, no ORM |
-| Config data | **YAML** via **PyYAML** | `data/*.yaml` |
-| Fake reports | **ReportLab** | Generates synthetic lab PDFs |
-| Frontend | **Plain HTML + CSS + vanilla JavaScript** | No React, no npm, no build step |
-| Charts | **Chart.js 4** (file saved in `web/vendor/`, not loaded from a CDN) | The demo runs with Wi-Fi off |
-| Tests | **pytest** (+ `httpx` for API tests) | `pytest -q` must pass before merging |
-| Formatting | **ruff** (VS Code extension, format on save) | 4-space indents, double quotes |
+## What it does
+
+- **Reads PDFs from different labs.** `pdfplumber` gets the text; a local LLM
+  (Qwen2.5-7B via Ollama) turns it into structured values, with a rules-based reader
+  as fallback when the model is off or misses values.
+- **Standardizes.** Test-name aliases and unit conversion from `data/tests.yaml`
+  (e.g. glucose mmol/L × 18 → mg/dL). Duplicate uploads are detected by file hash.
+- **Remembers.** Every value is stored in a local SQLite file with the report and
+  page it came from, so every number on screen links back to its source.
+- **Reasons across documents.** Trends per test, plus rules in `data/rules.yaml`
+  that combine a medicine with later results (metformin × creatinine fires on the
+  demo data; thyroid medicine × TSH and others are written and fire as more tests
+  are added). Data-quality caveats too, e.g. a "fasting" sample collected at 11:40.
+- **Writes a doctor summary.** Python picks the facts; the LLM only writes the
+  sentences, and a guard rejects any sentence with a number that isn't in the facts
+  or with diagnosis/dosing words (falls back to a template).
+- **Stays private.** The only network call is to Ollama on `127.0.0.1`; `src/llm.py`
+  refuses any non-local address. Works with Wi-Fi off (Chart.js is vendored).
+
+**It never diagnoses or suggests doses.** Every flag ends in a question for the doctor.
+
+## Results
+
+| Check | Result |
+|---|---|
+| Test suite (`pytest -q`) | 50 passed |
+| Extraction on 16 synthetic reports, 3 lab layouts + 2 prescriptions | **78/78** values correct (rules reader), **78/78** (local LLM), header fields 18/18 |
+| Extraction on separate hand-made fixtures | 22/22 |
+| Demo case (Ramesh) | Metformin × creatinine flag fires, plus glucose / HbA1c trends |
+
+Reproduce: `python tools/accuracy.py --set samples --mode rules` (or `--mode llm`).
 
 ## Architecture
 
@@ -54,40 +75,24 @@ rising creatinine on lab reports). Nothing leaves the laptop.
             web/app.js  (Chart.js timeline, flag cards, doctor summary)
 ```
 
-The JSON shapes passed between modules are defined **once** in
-[`src/contracts.py`](src/contracts.py) and explained in
-[`docs/interfaces.md`](docs/interfaces.md). Build against them with fake data
-and nobody waits on anybody.
+Module boundaries are typed once in [`src/contracts.py`](src/contracts.py)
+(explained in [`docs/interfaces.md`](docs/interfaces.md)).
 
-## Who owns what
+## Tech stack
 
-Four roles, assigned 24 Sep. **Your first commit:** put your name in the `OWNER:`
-line at the top of each of your files (it checks your Git setup works).
-
-| Role | Name | Files |
+| Layer | Use | Notes |
 |---|---|---|
-| **Data & Standards** (Person 1) | Pankaj Kumar B S (@PunkK9) | `tools/make_fake_reports.py`, `data/tests.yaml`, `src/standard.py`, `src/store.py`, `tests/test_standard.py`, `tests/test_store.py` |
-| **Frontend, API & Demo** (Person 4) | Abhishek Chugh (@abhichugh2006-design) | `web/index.html`, `web/app.js`, `web/style.css`, `web/sample.json`, `web/vendor/`, `src/api.py`, `tests/test_api.py`, `demo/` |
-| **Extraction** (Person 2) | Amogh R B (@AmoghRB) | `src/extract.py`, `src/llm.py`, `prompts/extract.txt`, `src/ingest.py`, `tools/accuracy.py`, `tools/make_test_pdfs.py`, `tests/fixtures/`, `tests/test_extract.py`, `tests/test_ingest.py` |
-| **Reasoning & Submission** (Person 3) | Aditya Jibrael (@Aditya-JIB3012) | `src/reason.py`, `src/summary.py`, `data/rules.yaml`, `data/medicines.yaml`, `prompts/summary.txt`, `tests/test_reason.py`, `README.md` |
-| **Shared** (change only after the group agrees) | everyone | `src/contracts.py`, `docs/interfaces.md`, `requirements.txt`, `AGENTS.md` |
-
-### How to pick a role
-
-| Role | Load | Blocks others? | Best for someone who… |
-|---|---|---|---|
-| **Extraction** | Heaviest: messy PDFs, regex, local LLM, upload glue | Partly: nothing gets into the app without it | is strongest in Python and can debug when AI-written code breaks |
-| **Data & Standards** | Medium, but **most urgent** | **Yes:** everyone needs the fake reports + `tests.yaml` | can start **immediately** and is careful with details (units, ranges, SQL) |
-| **Reasoning & Submission** | Medium; builds the metformin flag, the demo's best moment | No: builds on fake rows | thinks logically, writes well, will own the final submission (the lead fits) |
-| **Frontend, API & Demo** | Light–medium; fully independent via `web/sample.json`, and `api.py` is thin routes returning exactly what the page reads | No | enjoys UI work, or has the least free time this week |
-
-**Picking order:** Data & Standards first, to whoever can start today (not anyone
-tied up until the 25th) → Extraction to the strongest Python person → Reasoning
-& Submission to the lead → Frontend, API & Demo to whoever is left.
-
-**So nobody waits:** Frontend builds against `web/sample.json`; Reasoning tests
-`trend()` and flags on hand-written rows; Extraction tests on the report text in
-`tests/test_extract.py` until the fake PDFs exist. Everything connects on **27 Sep**.
+| Language | **Python 3.12** | Backend, tools, tests |
+| API | **FastAPI** + **Uvicorn** | Serves the API *and* the `web/` folder |
+| PDF reading | **pdfplumber** | Text + tables from digital PDFs |
+| Local LLM | **Ollama**, model `qwen2.5:7b-instruct` (`qwen2.5:3b-instruct` on smaller laptops) | Called over `http://127.0.0.1:11434` with Python's `urllib`, no SDK |
+| Database | **SQLite** via Python's built-in `sqlite3` | One file in `vault_data/`, no ORM |
+| Config data | **YAML** via **PyYAML** | `data/*.yaml` |
+| Fake reports | **ReportLab** | Generates synthetic lab PDFs |
+| Frontend | **Plain HTML + CSS + vanilla JavaScript** | No React, no npm, no build step |
+| Charts | **Chart.js 4** (file saved in `web/vendor/`, not loaded from a CDN) | The demo runs with Wi-Fi off |
+| Tests | **pytest** (+ `httpx` for API tests) | `pytest -q` must pass before merging |
+| Formatting | **ruff** (VS Code extension, format on save) | 4-space indents, double quotes |
 
 ## Setup
 
@@ -126,20 +131,40 @@ Demo data without uploading: `FHV_SAMPLE=1 ./run.sh` serves `web/sample.json`.
 Frontend only, no backend: `cd web && python -m http.server 8000` → open
 http://127.0.0.1:8000. `app.js` falls back to `sample.json`.
 
-## Ground rules (these cost marks if ignored)
+## Limitations
 
-- **Offline.** Nothing calls the internet at runtime. Test with Wi-Fi off.
-- **No diagnoses, no doses.** Every flag ends with a question for the doctor.
-- **Numbers come from Python, sentences from the LLM.** If the model computes a value, it's a bug.
-- **Synthetic reports only.** Never commit a real person's report.
-- **Everyone commits under their own name, several times a day.** Judges read the history.
+- Digital PDFs only; photos and scans are refused (no OCR yet).
+- 10 tests are tracked so far (`data/tests.yaml`); others on a report are skipped.
+- Tested on synthetic reports only. Not a medical device and not medical advice.
 
-## Prior work disclosure
+## Team
 
-Amogh built a solo exploratory prototype of this idea on 23 Sep 2026 (local,
-not published) before the team split the work. This repository is a fresh
-build by the full team. Any code carried over from that prototype will be
-listed here explicitly, per ASYNC'26 rules 3 and 4.
+| Role | Name | GitHub |
+|---|---|---|
+| Data & Standards | Pankaj Kumar B S | [@PunkK9](https://github.com/PunkK9) |
+| Extraction | Amogh R B | [@AmoghRB](https://github.com/AmoghRB) |
+| Reasoning & Submission | Aditya Jibrael | [@Aditya-JIB3012](https://github.com/Aditya-JIB3012) |
+| Frontend, API & Demo | Abhishek Chugh | [@abhichugh2006-design](https://github.com/abhichugh2006-design) |
+
+Who built what is in the commit history and merged pull requests; file ownership is
+in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Work scope and prior work disclosure (rules 3 and 4)
+
+- **Built for ASYNC'26, 24–28 Sep 2026**, as the prototype for the 28 Sep
+  submission. The first commit is an empty scaffold (24 Sep). Work done at the
+  finals (30 Sep – 1 Oct) comes after the git tag `prototype-2026-09-28`.
+- **Prior work:** Amogh built a solo exploratory prototype of this idea on
+  23 Sep 2026 (local, never published) before the team split the work. This
+  repository was started from scratch on 24 Sep; no code was copied from it.
+- **Data:** all reports in this repo are synthetic, generated by
+  `tools/make_fake_reports.py` and `tools/make_test_pdfs.py`. No real patient data.
+- **Models and third-party code:** Qwen2.5-7B-Instruct (Apache 2.0) run through
+  Ollama (MIT); Chart.js 4.4.2 (MIT, vendored in `web/vendor/`); Python libraries in
+  `requirements.txt` (FastAPI, Uvicorn, pdfplumber, ReportLab, PyYAML, pytest, httpx),
+  all open-source. No external APIs.
+- **AI assistance:** team members used AI coding assistants while building;
+  [`AGENTS.md`](AGENTS.md) holds the rules the team gave them.
 
 ## License
 
