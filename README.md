@@ -101,14 +101,23 @@ pip install -r requirements.txt
 # Local LLM (once): install Ollama from https://ollama.com, then
 ollama pull qwen2.5:7b-instruct     # or qwen2.5:3b-instruct on 8 GB RAM
 
-pytest -q                            # 49 tests
+pytest -q                            # 50 tests
 ./run.sh --samples                   # makes the 16 fake PDFs in samples/, starts the app
 ```
+
+**Windows** (no `run.sh`): after `pip install`, run
+`python tools/make_fake_reports.py` then
+`python -m uvicorn src.api:app --host 127.0.0.1 --port 8765`.
 
 Open http://127.0.0.1:8765 → **Upload** tab → drop all the PDFs from `samples/`
 (about 15 s each with Ollama on; instant without it, the rules reader takes over) →
 pick **Ramesh Kumar** → **Flags** / **Timeline** / **Doctor Summary**.
 Uploads are stored in `vault_data/` (git-ignored); delete that folder to start over.
+
+**Your own reports:** digital PDFs only (the kind a lab emails, where you can select
+the text). Photos or scans are refused, since there's no OCR yet. Only the 10 tests
+in `data/tests.yaml` are tracked; anything else on the report is skipped.
+If the page shows "Address already in use", the app is already running: just open the link.
 
 Check extraction accuracy: `python tools/accuracy.py --set samples --mode rules`
 (or `--mode llm`).
