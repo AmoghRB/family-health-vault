@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 import urllib.request
 from pathlib import Path
 
@@ -14,8 +15,8 @@ _store = None
 
 
 def use_sample() -> bool:
-    """FHV_SAMPLE=1 (the default until the pipeline is wired) serves web/sample.json."""
-    return os.environ.get("FHV_SAMPLE", "1") == "1"
+    """FHV_SAMPLE=1 serves web/sample.json instead of the vault (frontend work without a database)."""
+    return os.environ.get("FHV_SAMPLE", "0") == "1"
 
 
 def store():
@@ -39,17 +40,31 @@ def ollama_up() -> bool:
         return False
 
 
-# --- Pipeline adapters: fill these three from the headers of ingest.py / reason.py / summary.py ---
+# --- Pipeline adapters: the real modules behind each route (used when FHV_SAMPLE=0) ---
 def _real_timeline(person_id: int) -> dict | None:
-    raise NotImplementedError("call reason.py (see its header)")
+    from src import reason
+
+    return reason.timeline(store(), person_id)
 
 
 def _real_summary(person_id: int) -> dict | None:
-    raise NotImplementedError("call summary.py (see its header)")
+    from src import reason, summary
+
+    tl = reason.timeline(store(), person_id)
+    if tl is None:
+        return None
+    return summary.build(tl, [m["name"] for m in store().medicines(person_id)])
 
 
 def _real_ingest(filename: str, content: bytes) -> dict:
-    raise NotImplementedError("call ingest.py (see its header); return an UploadResult")
+    from src import ingest
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        tmp.write(content)
+    try:
+        return ingest.ingest(store(), tmp.name, filename)
+    finally:
+        os.unlink(tmp.name)
 
 
 @app.get("/api/status")
