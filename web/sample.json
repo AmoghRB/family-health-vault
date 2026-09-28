@@ -172,6 +172,118 @@
       "caveats": [
         "The fasting sample on 15 Mar 2025 was collected at 11:40, so it may not be a true fasting value."
       ]
+    },
+    "2": {
+      "person": "Lakshmi Kumar",
+      "person_id": 2,
+      "series": [
+        {
+          "test": "Vitamin D",
+          "test_id": "vitamin_d",
+          "unit": "ng/mL",
+          "normal": [
+            30,
+            100
+          ],
+          "points": [
+            {
+              "date": "2024-04-02",
+              "value": 14.2,
+              "source": "lakshmi_2024-04-02_sunrise.pdf#p1"
+            },
+            {
+              "date": "2024-10-15",
+              "value": 16.8,
+              "source": "lakshmi_2024-10-15_thyroplus.pdf#p1"
+            },
+            {
+              "date": "2025-04-20",
+              "value": 24.5,
+              "source": "lakshmi_2025-04-20_srisai.pdf#p1"
+            },
+            {
+              "date": "2025-10-08",
+              "value": 31.0,
+              "source": "lakshmi_2025-10-08_sunrise.pdf#p1"
+            },
+            {
+              "date": "2026-03-12",
+              "value": 36.4,
+              "source": "lakshmi_2026-03-12_thyroplus.pdf#p1"
+            },
+            {
+              "date": "2026-08-20",
+              "value": 38.1,
+              "source": "lakshmi_2026-08-20_srisai.pdf#p1"
+            }
+          ]
+        },
+        {
+          "test": "TSH",
+          "test_id": "tsh",
+          "unit": "mIU/L",
+          "normal": [
+            0.4,
+            4.0
+          ],
+          "points": [
+            {
+              "date": "2024-04-02",
+              "value": 5.8,
+              "source": "lakshmi_2024-04-02_sunrise.pdf#p1"
+            },
+            {
+              "date": "2024-10-15",
+              "value": 4.9,
+              "source": "lakshmi_2024-10-15_thyroplus.pdf#p1"
+            },
+            {
+              "date": "2025-04-20",
+              "value": 3.6,
+              "source": "lakshmi_2025-04-20_srisai.pdf#p1"
+            },
+            {
+              "date": "2025-10-08",
+              "value": 3.1,
+              "source": "lakshmi_2025-10-08_sunrise.pdf#p1"
+            },
+            {
+              "date": "2026-03-12",
+              "value": 2.8,
+              "source": "lakshmi_2026-03-12_thyroplus.pdf#p1"
+            },
+            {
+              "date": "2026-08-20",
+              "value": 2.9,
+              "source": "lakshmi_2026-08-20_srisai.pdf#p1"
+            }
+          ]
+        }
+      ],
+      "flags": [
+        {
+          "level": "green",
+          "title": "Vitamin D back in range",
+          "detail": "Vitamin D 14.2 → 38.1 ng/mL since supplements started in Oct 2024.",
+          "ask_doctor": "Should I keep taking the vitamin D supplement at the same level?",
+          "sources": [
+            "lakshmi_2024-10-15_prescription.pdf",
+            "lakshmi_2024-04-02_sunrise.pdf",
+            "lakshmi_2026-08-20_srisai.pdf"
+          ]
+        },
+        {
+          "level": "green",
+          "title": "Thyroid values steady on treatment",
+          "detail": "TSH 5.8 → 2.9 mIU/L, inside the normal range for the last 4 reports.",
+          "ask_doctor": "How often should my thyroid be re-checked now that it is stable?",
+          "sources": [
+            "lakshmi_2024-04-02_sunrise.pdf",
+            "lakshmi_2026-08-20_srisai.pdf"
+          ]
+        }
+      ],
+      "caveats": []
     }
   },
   "summaries": {
@@ -213,6 +325,43 @@
         "The fasting sample on 15 Mar 2025 was collected at 11:40, so it may not be a true fasting value."
       ],
       "intro": "Ramesh Kumar has 7 reports from March 2024 to August 2026. Two things are worth discussing: creatinine has risen from 0.9 to 1.3 mg/dL since metformin was prescribed, and HbA1c has risen from 6.1 to 7.2%."
+    },
+    "2": {
+      "person": "Lakshmi Kumar",
+      "generated": "2026-09-28",
+      "medicines": [
+        "Thyronorm",
+        "Uprise D3"
+      ],
+      "top_trends": [
+        {
+          "level": "green",
+          "title": "Vitamin D back in range",
+          "detail": "Vitamin D 14.2 → 38.1 ng/mL since supplements started in Oct 2024.",
+          "ask_doctor": "Should I keep taking the vitamin D supplement at the same level?",
+          "sources": [
+            "lakshmi_2024-10-15_prescription.pdf",
+            "lakshmi_2024-04-02_sunrise.pdf",
+            "lakshmi_2026-08-20_srisai.pdf"
+          ]
+        },
+        {
+          "level": "green",
+          "title": "Thyroid values steady on treatment",
+          "detail": "TSH 5.8 → 2.9 mIU/L, inside the normal range for the last 4 reports.",
+          "ask_doctor": "How often should my thyroid be re-checked now that it is stable?",
+          "sources": [
+            "lakshmi_2024-04-02_sunrise.pdf",
+            "lakshmi_2026-08-20_srisai.pdf"
+          ]
+        }
+      ],
+      "questions": [
+        "Should I keep taking the vitamin D supplement at the same level?",
+        "How often should my thyroid be re-checked now that it is stable?"
+      ],
+      "caveats": [],
+      "intro": "Lakshmi Kumar has 7 reports from April 2024 to August 2026. Vitamin D has risen from 14.2 to 38.1 ng/mL since supplements started, and TSH has settled inside the normal range."
     }
   }
 }

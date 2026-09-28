@@ -1,5 +1,5 @@
 <!--
-OWNER: Frontend, API & Demo role — name: ________ (fill in when you pick this)
+OWNER: Frontend, API & Demo role — Amogh R B (covering for Abhishek Chugh)
 LANGUAGE: plain HTML5. No framework, no build step, no CDN links.
 
 ──────────────────────────────── AI PROMPT ────────────────────────────────
@@ -44,13 +44,73 @@ shows all areas filled from sample.json with no console errors.
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Family Health Vault</h1>
-    <!-- TODO(FRONTEND): status pill, disclaimer -->
+  <header class="top">
+    <div class="brand">
+      <h1>Family Health Vault</h1>
+      <span id="llm-status" class="pill">Checking local AI…</span>
+      <span id="demo-badge" class="pill demo" hidden>Demo data</span>
+    </div>
+    <p class="disclaimer">Not medical advice. Every flag is a question for your doctor.</p>
   </header>
-  <main>
-    <!-- TODO(FRONTEND): upload, people, timeline, flags, summary sections -->
+
+  <main class="layout">
+    <div class="side">
+      <section class="card" aria-labelledby="upload-h">
+        <h2 id="upload-h">Add reports</h2>
+        <div id="drop" class="drop" tabindex="0">
+          <p>Drop lab reports or prescriptions (PDF) here</p>
+          <label class="btn" for="file-input">Choose files</label>
+          <input id="file-input" type="file" multiple accept=".pdf,application/pdf">
+        </div>
+        <ul id="upload-results" class="results" aria-live="polite"></ul>
+      </section>
+
+      <section class="card" aria-labelledby="people-h">
+        <h2 id="people-h">Family</h2>
+        <div id="people" class="people" role="group" aria-labelledby="people-h"></div>
+      </section>
+
+      <section class="card" aria-labelledby="summary-h">
+        <h2 id="summary-h">Doctor visit</h2>
+        <p class="muted">One page with trends, medicines and questions to take along.</p>
+        <button id="summary-btn" class="btn primary" type="button">Doctor summary</button>
+      </section>
+    </div>
+
+    <div class="content">
+      <section class="card" aria-labelledby="timeline-h">
+        <div class="row">
+          <h2 id="timeline-h">Timeline</h2>
+          <label class="picker">Test
+            <select id="test-picker"></select>
+          </label>
+        </div>
+        <div class="chart-box"><canvas id="chart" aria-label="Test values over time" role="img"></canvas></div>
+        <p id="chart-empty" class="muted" hidden>No results yet for this person.</p>
+      </section>
+
+      <section class="card" aria-labelledby="flags-h">
+        <h2 id="flags-h">Worth asking about</h2>
+        <div id="flags" class="flags"></div>
+        <ul id="caveats" class="caveats"></ul>
+      </section>
+    </div>
   </main>
+
+  <dialog id="summary" aria-labelledby="summary-title">
+    <article class="summary">
+      <header class="row">
+        <h2 id="summary-title">Doctor summary</h2>
+        <div class="no-print">
+          <button id="print-btn" class="btn primary" type="button">Print</button>
+          <button id="close-btn" class="btn" type="button">Close</button>
+        </div>
+      </header>
+      <div id="summary-body"></div>
+      <p class="disclaimer">Made by Family Health Vault on this device. Not medical advice.</p>
+    </article>
+  </dialog>
+
   <script src="vendor/chart.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
