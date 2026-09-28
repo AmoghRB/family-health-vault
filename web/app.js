@@ -426,6 +426,7 @@ function wireUpload() {
 }
 
 async function handleUpload(files) {
+  if (!files.length) return; // e.g. the file picker was cancelled
   const pdfs = files.filter((f) => f.name.toLowerCase().endsWith(".pdf"));
   const log = $("upload-log");
   log.querySelector(".upload-done")?.remove();
