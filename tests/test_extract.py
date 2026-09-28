@@ -4,7 +4,7 @@ Run: pytest -q tests/test_extract.py
 
 import pytest
 
-from src.extract import read_rules
+from src.extract import parse_date as ex_parse_date, read_rules
 
 LAB_PAGE = """SRI SAI CLINICAL LABORATORY
 Patient Name : Mr. RAMESH KUMAR        Age/Sex : 58/M
@@ -43,6 +43,16 @@ def test_rules_prescription_has_no_doses():
     assert r["kind"] == "prescription"
     names = [m["name"].lower() for m in r["medicines"]]
     assert names == ["metformin", "atorvastatin"]
+
+
+@pytest.mark.parametrize("s, want", [
+    ("Sample Date: 2024-03-11 Collected: 08:15", "2024-03-11"),  # ISO (fake reports)
+    ("Date: 11/03/2024", "2024-03-11"),                           # day-first
+    ("Reported 20 Sep 2024", "2024-09-20"),
+    ("14-08-26", "2026-08-14"),
+])
+def test_parse_date_formats(s, want):
+    assert ex_parse_date(s) == want
 
 
 # ── LLM path, with a fake model (no Ollama needed) ────────────────────────────

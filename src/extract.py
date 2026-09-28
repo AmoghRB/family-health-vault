@@ -98,7 +98,8 @@ def read_pdf(path: str | Path) -> list[str]:
 MONTHS = {m: i for i, m in enumerate(
     "jan feb mar apr may jun jul aug sep oct nov dec".split(), start=1)}
 DATE_RE = re.compile(
-    r"\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b"          # 11/03/2024, 14-08-26
+    r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b"                        # 2024-03-11 (ISO)
+    r"|\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b"          # 11/03/2024, 14-08-26
     r"|\b(\d{1,2})[\s\-]([A-Za-z]{3})[a-z]*[\s\-,]+(\d{2,4})\b"  # 20 Sep 2024, 14-Aug-26
 )
 TIME_RE = re.compile(r"\b(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp]\.?[Mm]\.?)?")
@@ -114,13 +115,15 @@ def _iso(day: int, month: int, year: int) -> str | None:
 
 
 def parse_date(s: str) -> str | None:
-    """First day-first date in s as YYYY-MM-DD."""
+    """First date in s (ISO, else day-first) as YYYY-MM-DD."""
     for m in DATE_RE.finditer(s):
         if m.group(1):
-            d = _iso(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            d = _iso(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+        elif m.group(4):
+            d = _iso(int(m.group(4)), int(m.group(5)), int(m.group(6)))
         else:
-            mon = MONTHS.get(m.group(5).lower()[:3])
-            d = _iso(int(m.group(4)), mon, int(m.group(6))) if mon else None
+            mon = MONTHS.get(m.group(8).lower()[:3])
+            d = _iso(int(m.group(7)), mon, int(m.group(9))) if mon else None
         if d:
             return d
     return None
