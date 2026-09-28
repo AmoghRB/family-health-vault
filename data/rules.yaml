@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# OWNER: Reasoning & Submission role — name: ________ (fill in when you pick this)          FORMAT: YAML        USED BY: src/reason.py
+# OWNER: Reasoning & Submission role          FORMAT: YAML        USED BY: src/reason.py
 #
 # Cross-document rules: a medicine (from a prescription) + a lab trend (from lab
 # reports). A rule fires when the person takes a medicine of `drug_class` AND any
@@ -9,12 +9,6 @@
 #   condition: rising | falling   trend over 3+ readings (reason.trend)
 #              above  | below     latest reading outside the normal range
 #   level:     red | amber | green
-#
-# AI PROMPT: "Add 3–5 more rules in exactly this format for common Indian
-#   prescriptions: statin + SGPT/SGOT rising, ACE inhibitor/ARB + potassium
-#   above, thyroid hormone + TSH below (over-replacement), vitamin D supplement +
-#   vitamin D back in range (green). test ids must exist in data/tests.yaml and
-#   drug classes in data/medicines.yaml. Titles describe, questions ask; no advice."
 # ─────────────────────────────────────────────────────────────────────────────
 
 - id: metformin_kidney
@@ -25,4 +19,37 @@
   title: Kidney values changing since metformin started
   ask: Should my kidney function be checked while I'm on metformin?
 
-# TODO(REASON): more rules
+- id: statin_liver
+  drug_class: statin
+  when: [{test: sgpt_alt, condition: rising}, {test: sgot_ast, condition: rising}]
+  level: amber
+  title: Liver enzyme levels rising since statin started
+  ask: Should my liver function be rechecked while I'm on a statin?
+
+- id: arb_potassium
+  drug_class: arb
+  when: [{test: potassium, condition: above}]
+  level: amber
+  title: Potassium level above normal range while on an ARB
+  ask: Should my potassium level be monitored while I'm on this blood-pressure medicine?
+
+- id: ace_potassium
+  drug_class: ace_inhibitor
+  when: [{test: potassium, condition: above}]
+  level: amber
+  title: Potassium level above normal range while on an ACE inhibitor
+  ask: Should my potassium level be monitored while I'm on this blood-pressure medicine?
+
+- id: thyroid_tsh
+  drug_class: thyroid_hormone
+  when: [{test: tsh, condition: below}]
+  level: amber
+  title: TSH below normal range while on thyroid medication
+  ask: Could my thyroid dose need adjusting based on my TSH level?
+
+- id: vitd_supplement
+  drug_class: vitamin_d
+  when: [{test: vitamin_d, condition: below}]
+  level: green
+  title: Vitamin D still below normal despite supplementation
+  ask: Is my current vitamin D supplementation plan working well enough?

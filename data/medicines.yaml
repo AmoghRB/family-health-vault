@@ -1,17 +1,17 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# OWNER: Reasoning & Submission role — name: ________ (fill in when you pick this)          FORMAT: YAML   USED BY: src/reason.py (drug_class)
+# OWNER: Reasoning & Submission role          FORMAT: YAML   USED BY: src/reason.py (drug_class)
 #
 # Medicine name → drug class. Only the class is used for reasoning; only the name
 # is ever shown back. Doses are never stored.
-#
-# AI PROMPT: "Extend this list with generic AND common Indian brand names
-#   (lowercase) for: sulfonylurea, statin, arb, ace_inhibitor, ccb,
-#   thyroid_hormone, iron, vitamin_d, vitamin_b12, ppi. Same format."
 # ─────────────────────────────────────────────────────────────────────────────
 
 biguanide: [metformin, glycomet, glucophage, obimet, gluformin]
-statin: [atorvastatin, rosuvastatin, simvastatin, atorva, rosuvas, storvas]
+statin: [atorvastatin, rosuvastatin, simvastatin, atorva, rosuvas, storvas, tonact, crestor]
 thyroid_hormone: [levothyroxine, thyronorm, eltroxin, thyrox]
-vitamin_d: [cholecalciferol, vitamin d3, calcirol, uprise d3]
-
-# TODO(REASON): more classes
+vitamin_d: [cholecalciferol, vitamin d3, calcirol, uprise d3, arachitol, d-rise]
+sulfonylurea: [glimepiride, gliclazide, glipizide, amaryl, glimisave, glycinorm, diamicron]
+arb: [telmisartan, losartan, olmesartan, valsartan, telma, losar, olmat, valzaar]
+ace_inhibitor: [enalapril, ramipril, lisinopril, envas, cardace, lipril]
+iron: [ferrous sulfate, ferrous fumarate, carbonyl iron, orofer, autrin, dexorange]
+vitamin_b12: [methylcobalamin, cyanocobalamin, mecobalamin, methycobal, nurokind, rejunuron]
+ppi: [pantoprazole, omeprazole, rabeprazole, esomeprazole, pan, pantocid, razo, nexpro]
