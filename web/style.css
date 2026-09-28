@@ -420,3 +420,19 @@ h1, h2, h3, p { margin: 0; }
 .chat-form .btn:disabled { opacity: 0.6; cursor: wait; }
 @media (max-width: 720px) { .bubble { max-width: 95%; } }
 @media print { #panel-ask { display: none !important; } }
+
+/* ---------- remove person ---------- */
+.family-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.link-danger {
+  background: none; border: none; padding: 6px 2px; min-height: 32px; cursor: pointer;
+  color: var(--critical); font-size: 13.5px; font-weight: 600;
+}
+.link-danger:hover { text-decoration: underline; }
+.confirm {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px;
+  padding: 12px 14px; border-radius: var(--radius-sm); background: var(--critical-soft);
+}
+.confirm[hidden] { display: none; }
+.confirm p { flex: 1 1 280px; font-size: 14.5px; }
+.btn-danger { background: var(--critical); border-color: var(--critical); color: #fff; }
+.btn-danger:hover { filter: brightness(0.92); border-color: var(--critical); }

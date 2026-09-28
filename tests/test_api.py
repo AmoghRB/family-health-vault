@@ -82,3 +82,20 @@ def test_add_person_real_store(monkeypatch, tmp_path):
     assert client.post("/api/people", json={"name": "PRIYA KUMAR"}).json()["id"] == 1  # same person
     assert client.post("/api/people", json={"name": "<script>"}).status_code == 422
     assert client.get("/api/timeline/1").status_code == 200  # a person with no reports still loads
+
+
+def test_remove_person_deletes_vault_copy(monkeypatch, tmp_path):
+    import src.api as api
+    from src.store import Store
+
+    monkeypatch.setenv("FHV_SAMPLE", "0")
+    st = Store(tmp_path)
+    monkeypatch.setattr(api, "_store", st)
+    pid = st.find_or_create_person("Priya Kumar")
+    copy = tmp_path / "files" / "abc.pdf"
+    copy.parent.mkdir()
+    copy.write_bytes(b"%PDF")
+    st.add_report(pid, "p.pdf", str(copy), "h", "lab", None, "2025-01-01", None)
+    assert client.delete(f"/api/people/{pid}").json() == {"ok": True, "removed_reports": 1}
+    assert not copy.exists()
+    assert client.delete(f"/api/people/{pid}").status_code == 404

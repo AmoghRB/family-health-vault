@@ -52,7 +52,7 @@ least want to upload to a cloud AI, which is why this runs fully on the user's m
 
 | Check | Result |
 |---|---|
-| Test suite (`pytest -q`) | 61 passed |
+| Test suite (`pytest -q`) | 63 passed |
 | Extraction on 16 synthetic reports, 3 lab layouts + 2 prescriptions | **78/78** values correct (rules reader), **78/78** (local LLM), header fields 18/18 |
 | Extraction on separate hand-made fixtures | 22/22 |
 | Demo case (Ramesh) | Metformin × creatinine flag fires, plus glucose / HbA1c trends |
@@ -112,7 +112,7 @@ pip install -r requirements.txt
 # Local LLM (once): install Ollama from https://ollama.com, then
 ollama pull qwen2.5:7b-instruct     # or qwen2.5:3b-instruct on 8 GB RAM
 
-pytest -q                            # 61 tests
+pytest -q                            # 63 tests
 ./run.sh --samples                   # makes the 16 fake PDFs in samples/, starts the app
 ```
 
@@ -123,7 +123,8 @@ pytest -q                            # 61 tests
 Open http://127.0.0.1:8765 → **Upload** tab → drop all the PDFs from `samples/`
 (about 15 s each with Ollama on; instant without it, the rules reader takes over) →
 pick **Ramesh Kumar** → **Ask AI** / **Flags** / **Timeline** / **Doctor summary**.
-New family members can be added with **Add person**; their reports match them by name.
+New family members can be added with **Add person** (their reports match them by name) and
+removed with **Remove** (deletes their reports, values and stored PDF copies).
 Uploads are stored in `vault_data/` (git-ignored); delete that folder to start over.
 
 **Your own reports:** digital PDFs only (the kind a lab emails, where you can select

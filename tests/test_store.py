@@ -64,3 +64,18 @@ def test_saved_summaries_history():
     loaded = store.get_summary(sid)
     assert loaded["person"] == "Ramesh Kumar"
     assert loaded["generated"] == "2026-09-28"
+
+
+def test_delete_person_removes_everything(tmp_path):
+    s = Store(tmp_path)
+    pid = s.find_or_create_person("Priya Kumar")
+    keep = s.find_or_create_person("Ramesh Kumar")
+    rid = s.add_report(pid, "p.pdf", str(tmp_path / "p.pdf"), "hp", "lab", None, "2025-01-01", None)
+    s.add_result(rid, value())
+    s.add_medicine(rid, pid, "Uprise D3", "vitamin_d", "2025-01-01")
+    s.add_question(pid, "Is my vitamin D ok?")
+    s.add_report(keep, "r.pdf", None, "hr", "lab", None, "2025-01-01", None)
+    assert s.delete_person(pid) == [str(tmp_path / "p.pdf")]
+    assert [p["id"] for p in s.people()] == [keep]
+    assert s.results(pid) == [] and s.medicines(pid) == [] and s.report_by_hash("hp") is None
+    assert s.delete_person(pid) is None

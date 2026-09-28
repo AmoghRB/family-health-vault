@@ -238,6 +238,21 @@ class Store:
         self.conn.commit()
         return cur.rowcount > 0
 
+    def delete_person(self, person_id: int) -> list[str] | None:
+        """Remove a person and everything recorded for them, in one transaction.
+
+        Returns the stored PDF paths (so the caller can delete the copies), or None if unknown.
+        """
+        if self.person(person_id) is None:
+            return None
+        paths = [r["stored_path"] for r in self.reports(person_id) if r.get("stored_path")]
+        with self.conn:  # commits on success, rolls back on error
+            for table in ("doctor_questions", "saved_summaries", "medicines"):
+                self.conn.execute(f"DELETE FROM {table} WHERE person_id = ?", (person_id,))
+            self.conn.execute("DELETE FROM reports WHERE person_id = ?", (person_id,))  # results cascade
+            self.conn.execute("DELETE FROM people WHERE id = ?", (person_id,))
+        return paths
+
     def add_question(self, person_id: int, question: str) -> int:
         q = question.strip()
         if not q:

@@ -55,6 +55,12 @@
     <section class="family" aria-label="Family members">
       <div class="family-head">
         <h2 class="eyebrow">Family</h2>
+        <button class="link-danger" id="remove-btn" type="button" hidden>Remove <span id="remove-name"></span></button>
+      </div>
+      <div class="confirm" id="remove-confirm" role="alertdialog" aria-labelledby="remove-text" hidden>
+        <p id="remove-text"></p>
+        <button class="btn btn-danger" id="remove-yes" type="button">Remove</button>
+        <button class="btn" id="remove-no" type="button">Cancel</button>
       </div>
       <div class="person-chips" id="person-chips" role="radiogroup" aria-label="Choose a family member"></div>
     </section>

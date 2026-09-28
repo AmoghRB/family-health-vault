@@ -21,6 +21,7 @@ async function init() {
   wireTabs();
   wireUpload();
   wireChat();
+  wireRemove();
   $("print-btn").addEventListener("click", () => window.print());
   await loadPeople();
   await loadStatus();
@@ -110,6 +111,7 @@ function renderPeople() {
       <button class="btn" type="button" id="add-cancel">Cancel</button>
       <p class="form-error" id="add-error" role="alert"></p>
     </form>`;
+  updateRemoveButton();
   box.querySelectorAll(".person-chip[data-id]").forEach((chip) =>
     chip.addEventListener("click", () => loadPerson(Number(chip.dataset.id)))
   );
@@ -171,6 +173,7 @@ async function loadPerson(id) {
   document.querySelectorAll(".person-chip").forEach((c) =>
     c.setAttribute("aria-checked", String(Number(c.dataset.id) === id))
   );
+  updateRemoveButton();
   let timeline;
   try {
     timeline = state.mode === "api" ? await api(`/api/timeline/${id}`) : state.sample.timelines[id];
@@ -553,4 +556,41 @@ async function ask(question) {
   $("chat-send").disabled = false;
   if (state.personId === id) renderChat();
   $("chat-input").focus();
+}
+
+/* ---------- remove person ---------- */
+
+function updateRemoveButton() {
+  const person = state.people.find((p) => p.id === state.personId);
+  $("remove-btn").hidden = !person || state.mode === "demo";
+  $("remove-confirm").hidden = true;
+  if (person) $("remove-name").textContent = person.name;
+}
+
+function wireRemove() {
+  const confirmBox = $("remove-confirm");
+  $("remove-btn").addEventListener("click", () => {
+    const person = state.people.find((p) => p.id === state.personId);
+    if (!person) return;
+    const n = person.reports;
+    $("remove-text").textContent =
+      `Remove ${person.name} and ${n ? `all ${n} of their report${n === 1 ? "" : "s"}` : "their profile"} from this laptop? This can't be undone.`;
+    confirmBox.hidden = false;
+    $("remove-no").focus();
+  });
+  $("remove-no").addEventListener("click", () => (confirmBox.hidden = true));
+  confirmBox.addEventListener("keydown", (e) => e.key === "Escape" && (confirmBox.hidden = true));
+  $("remove-yes").addEventListener("click", async () => {
+    const id = state.personId;
+    try {
+      const res = await fetch(`/api/people/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error((await res.json()).detail || `remove returned ${res.status}`);
+      delete state.chats[id];
+      await loadPeople();
+      if (state.personId != null) await loadPerson(state.personId);
+      else renderEmpty();
+    } catch (err) {
+      $("remove-text").textContent = `Couldn't remove: ${err.message}`;
+    }
+  });
 }

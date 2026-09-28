@@ -98,6 +98,22 @@ def add_person(body: NewPerson):
     return next(p for p in store().people() if p["id"] == person_id)
 
 
+@app.delete("/api/people/{person_id}")
+def remove_person(person_id: int):
+    """Remove a family member with all their reports, values, medicines and stored PDFs."""
+    if use_sample():
+        raise HTTPException(status_code=400, detail="Demo mode: start the backend to remove people.")
+    paths = store().delete_person(person_id)
+    if paths is None:
+        raise HTTPException(status_code=404, detail="Unknown person")
+    home = Path(store().home).resolve()
+    for p in paths:
+        f = Path(p).resolve()
+        if f.is_relative_to(home):  # only ever delete copies inside the vault folder
+            f.unlink(missing_ok=True)
+    return {"ok": True, "removed_reports": len(paths)}
+
+
 @app.get("/api/timeline/{person_id}")
 def timeline(person_id: int):
     data = sample()["timelines"].get(str(person_id)) if use_sample() else _real_timeline(person_id)
