@@ -27,6 +27,22 @@ def _load_tests() -> dict:
     return _tests_cache
 
 
+def catalogue() -> dict:
+    """test_id -> {name, unit, range, bad, ask} for reason.py (read from tests.yaml)."""
+    cat = {}
+    for test_id, t in _load_tests().items():
+        cat[test_id] = {
+            "name": t.get("name", test_id),
+            "unit": t.get("canonical_unit", ""),
+            "range": t.get("normal", [None, None]),
+        }
+        # optional; reason.py has defaults when these are missing
+        for key in ("bad", "ask"):
+            if t.get(key):
+                cat[test_id][key] = t[key]
+    return cat
+
+
 def _normalize(text: str) -> str:
     """Lowercase, collapse whitespace, strip punctuation-adjacent spacing."""
     return re.sub(r"\s+", " ", text.strip().lower())
